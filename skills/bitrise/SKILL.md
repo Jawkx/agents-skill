@@ -44,10 +44,12 @@ scripts/bitrise_api.sh POST /apps/<app-slug>/builds/<build-slug>/abort --json '{
 ## Workflow
 
 1. Confirm `BITRISE_ACCESS_TOKEN` exists before calling the API.
-2. Discover the needed endpoint in Bitrise docs: `https://docs.bitrise.io/en/bitrise-ci/api/api-reference.html`.
-3. Build the request body in a temporary JSON file for non-trivial payloads.
-4. Call `scripts/bitrise_api.sh`.
-5. If `jq` exists, pretty-print or filter JSON results.
+2. For CoinGecko mobile tasks, read `references/coingecko-mobile-specs.md` first to get app slugs and valid workflow IDs.
+3. If workflow/platform is not explicit or is ambiguous, ask the user to choose before triggering builds.
+4. Discover the needed endpoint in Bitrise docs: `https://docs.bitrise.io/en/bitrise-ci/api/api-reference.html`.
+5. Build the request body in a temporary JSON file for non-trivial payloads.
+6. Call `scripts/bitrise_api.sh`.
+7. If `jq` exists, pretty-print or filter JSON results.
 
 ## Troubleshooting
 
@@ -59,3 +61,4 @@ scripts/bitrise_api.sh POST /apps/<app-slug>/builds/<build-slug>/abort --json '{
 ## References
 
 - [API quick patterns](references/api-quick-patterns.md)
+- [CoinGecko mobile specs](references/coingecko-mobile-specs.md)
