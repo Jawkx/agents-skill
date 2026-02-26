@@ -20,7 +20,7 @@ Finalize an epic workflow after slices are merged: remove disposable work artifa
 
 ### 1) Run mandatory preflight
 
-Use shared preflight from `00-core-contract.md`.
+Use shared preflight from `01-core-contract.md`.
 
 ### 2) Verify completion state
 

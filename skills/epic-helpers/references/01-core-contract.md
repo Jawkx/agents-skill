@@ -39,7 +39,7 @@ epic-<feature>
 
 Prefer per-feature state to avoid collisions:
 
-- Plan: `.stack/<feature>/plan.yml`
+- Stack spec (plan): `.stack/<feature>/plan.yml`
 - State: `.stack/<feature>/state.json`
 
 Allow `.stack/plan.yml` only as a legacy fallback when the repo already uses it.

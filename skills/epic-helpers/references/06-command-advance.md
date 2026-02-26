@@ -22,7 +22,7 @@ This keeps the review stack aligned with the latest epic head while preserving i
 
 ### 1) Run mandatory preflight
 
-Use the shared preflight from `00-core-contract.md`.
+Use the shared preflight from `01-core-contract.md`.
 
 ### 2) Resolve merge target slice
 

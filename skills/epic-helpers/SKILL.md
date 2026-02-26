@@ -14,15 +14,13 @@ The goal is to keep day-to-day development fast on `<feature>/work` while mainta
 Use progressive disclosure and load only what you need:
 
 1. Core contract (always load first)
-   - [references/00-core-contract.md](references/00-core-contract.md)
+   - [references/01-core-contract.md](references/01-core-contract.md)
 2. Function playbook (load one or more based on intent)
-   - [references/10-command-status.md](references/10-command-status.md)
-   - [references/20-command-plan.md](references/20-command-plan.md)
-   - [references/30-command-publish.md](references/30-command-publish.md)
-   - [references/40-command-advance.md](references/40-command-advance.md)
-   - [references/50-command-clean.md](references/50-command-clean.md)
+   - [references/02-command-status.md](references/02-command-status.md)
+   - [references/04-function-generate-stacks.md](references/04-function-generate-stacks.md)
+   - [references/07-command-clean.md](references/07-command-clean.md)
 3. Recovery (load only when something fails)
-   - [references/90-recovery.md](references/90-recovery.md)
+   - [references/10-recovery.md](references/10-recovery.md)
 4. Template asset
    - `assets/plan.template.yml`
 
@@ -36,38 +34,28 @@ These are conceptual functions you execute while reasoning. The reference files 
 
 - `assess_stack(feature)`
   - Purpose: evaluate branch health and invariant status without writes.
-  - Reference: [references/10-command-status.md](references/10-command-status.md)
+  - Reference: [references/02-command-status.md](references/02-command-status.md)
   - Typical outcome: pass/fail report and the next recommended action.
 
-- `shape_plan(feature)`
-  - Purpose: create or validate `.stack/<feature>/plan.yml` so slicing is stable.
-  - Reference: [references/20-command-plan.md](references/20-command-plan.md)
-  - Typical outcome: valid plan or actionable assignment fixes.
-
-- `publish_stack(feature)`
-  - Purpose: regenerate unmerged slices from `epic..<work>` while keeping locked slices immutable.
-  - Reference: [references/30-command-publish.md](references/30-command-publish.md)
-  - Typical outcome: rewritten unlocked slice branches with tip tree equal to work tree.
-
-- `advance_stack(feature, merged_id)`
-  - Purpose: after slice merge, lock merged range and restack remaining slices.
-  - Reference: [references/40-command-advance.md](references/40-command-advance.md)
-  - Typical outcome: updated locked set, rebuilt unmerged slices, work reset to new tip.
+- `generate_stacks(feature, merged_id?)`
+  - Purpose: single orchestrator for spec generation/sync, stack publish, and optional post-merge advance.
+  - Reference: [references/04-function-generate-stacks.md](references/04-function-generate-stacks.md)
+  - Typical outcome: spec exists and is up to date, unlocked slices are rebuilt, and merged range is locked when requested.
 
 - `finalize_stack(feature)`
   - Purpose: clean disposable branches once epic integration is complete.
-  - Reference: [references/50-command-clean.md](references/50-command-clean.md)
+  - Reference: [references/07-command-clean.md](references/07-command-clean.md)
   - Typical outcome: work branch removed and optional slice cleanup done.
 
-If any function fails at checks or push time, load [references/90-recovery.md](references/90-recovery.md) and run the smallest safe recovery.
+If any function fails at checks or push time, load [references/10-recovery.md](references/10-recovery.md) and run the smallest safe recovery.
 
 ## Function Selection Guide
 
 - User asks "what is broken / where are we?" -> run `assess_stack`.
-- User asks to define or fix slicing boundaries -> run `shape_plan`.
-- User asks to generate or refresh review branches -> run `publish_stack`.
-- User says slice K merged into epic -> run `advance_stack`.
+- User asks to define/fix specs, publish stack, or restack after merge -> run `generate_stacks`.
 - User says epic is fully merged and wants cleanup -> run `finalize_stack`.
+
+`generate_stacks` is the default write path for this skill.
 
 ## Non-Negotiable Rules
 

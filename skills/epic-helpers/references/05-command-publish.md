@@ -23,7 +23,7 @@ MVP default is `rebuild` mode.
 
 ### 1) Run mandatory preflight
 
-Run the shared preflight from `00-core-contract.md`.
+Run the shared preflight from `01-core-contract.md`.
 
 If preflight fails, stop.
 
