@@ -36,6 +36,11 @@ Derived names:
 - work: `<feature>/work`
 - spec file: `.stack/<feature>/plan.yml`
 
+Spec ownership policy:
+
+- Plan is authored and committed on `epic-<feature>`.
+- Work branch must consume the same committed plan version before publish.
+
 ## High-Level Flow
 
 ### 0) Run preflight and branch checks
@@ -58,8 +63,10 @@ If user approves:
 
 1. bootstrap spec from `assets/plan.template.yml`
 2. infer initial slices from changed-path clusters (stable directory ownership first)
-3. write `.stack/<feature>/plan.yml`
-4. report generated slices and continue to Step 2
+3. write `.stack/<feature>/plan.yml` on `epic-<feature>`
+4. commit the new spec on `epic-<feature>`
+5. sync `<feature>/work` with that spec commit
+6. report generated slices and continue to Step 2
 
 If user declines:
 
@@ -83,6 +90,15 @@ Behavior:
 
 - if update is deterministic (for example obvious new path under an existing slice), apply spec update directly
 - if assignment is ambiguous, stop and report anomaly with concrete suggested edits
+
+When spec changes are applied:
+
+1. apply plan edits on `epic-<feature>`
+2. commit plan updates on `epic-<feature>`
+3. sync `<feature>/work` to the updated plan commit
+4. continue publish from the synced work branch
+
+Do not leave plan changes only on `<feature>/work`.
 
 ### 3) Publish unlocked slices
 
@@ -111,6 +127,8 @@ Stop and report clearly when any of these occur:
 - work branch missing
 - base branch missing
 - spec file missing and user declined generation
+- plan commit on `epic-<feature>` failed
+- work branch could not sync to epic plan commit
 - ambiguous/unassigned file ownership
 - locked slice would be rewritten
 - tip tree does not equal work tree after publish
@@ -127,7 +145,7 @@ For each anomaly include:
 Return a concise summary:
 
 1. Spec state
-   - generated, synced, unchanged, or blocked
+   - generated/synced/unchanged/blocked and whether committed on epic
 2. Stack updates
    - branches rebuilt/unchanged/locked
 3. Validation

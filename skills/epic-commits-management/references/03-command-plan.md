@@ -17,6 +17,11 @@ This command should not rewrite Git branches. It is planning and validation only
 - Preferred: `.stack/<feature>/plan.yml`
 - Legacy fallback: `.stack/plan.yml` when repo already uses single-feature layout
 
+Versioning policy:
+
+- Commit the plan on `epic-<feature>`.
+- Sync `<feature>/work` to that committed plan before publishing slices.
+
 ## Bootstrap Procedure
 
 1. Ensure feature folder exists.

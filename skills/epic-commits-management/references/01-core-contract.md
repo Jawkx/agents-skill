@@ -42,6 +42,13 @@ Prefer per-feature state to avoid collisions:
 - Stack spec (plan): `.stack/<feature>/plan.yml`
 - State: `.stack/<feature>/state.json`
 
+Source-of-truth policy:
+
+- Commit `.stack/<feature>/plan.yml` on `epic-<feature>`.
+- Treat `epic-<feature>` as the canonical plan branch.
+- Keep `<feature>/work` synced with epic's plan version before stack generation.
+- Keep `state.json` as runtime metadata (often local-only unless repo policy says otherwise).
+
 Allow `.stack/plan.yml` only as a legacy fallback when the repo already uses it.
 
 ### Recommended `state.json` shape
