@@ -1,9 +1,9 @@
 ---
-name: epic-helpers
+name: epic-commits-management
 description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and <feature>/<NN>-<details>, including health checks, planning, publish/restack, post-merge advance, and cleanup.
 ---
 
-# Epic Helpers
+# Epic Commits Management
 
 This is an agent reasoning skill, not a standalone CLI product. Treat it as a playbook for deciding what to do, what to validate, and which Git operations to run.
 

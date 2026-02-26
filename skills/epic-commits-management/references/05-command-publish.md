@@ -56,7 +56,7 @@ Create backup refs for each branch that may move:
 ### 5) Build stack on a temp branch
 
 1. Create temp build branch from base:
-   - `git switch -c .tmp/epic-helpers/<feature>/<timestamp> epic-<feature>`
+   - `git switch -c .tmp/epic-commits-management/<feature>/<timestamp> epic-<feature>`
 2. Iterate slices in `id` order.
 
 For each slice:
