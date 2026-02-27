@@ -1,6 +1,6 @@
 ---
 name: epic-commits-management
-description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and ordered slice branches defined in epic.yml, including health checks, planning, publish/restack, post-merge advance, and cleanup.
+description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and ordered slice branches defined in epic.yml, including health checks, planning, publish/restack, post-merge advance, and cleanup. READ THIS if epic were mentioned by the user
 ---
 
 # Epic Commits Management
@@ -27,6 +27,21 @@ Use progressive disclosure and load only what you need:
 ## Progressive Disclosure
 
 Do not read every reference file up front. Start with the core contract, then load only the function playbook that matches the user goal.
+
+## Glossary
+
+- `feature`: The stack identifier used to derive branch and file names (for example, `add-market-screen`).
+- `base branch`: `epic-<feature>`, the integration branch slices eventually merge into.
+- `work branch`: `<feature>/work`, the only branch humans and automation edit directly.
+- `slice branch`: One ordered review branch from `.stack/<feature>/epic.yml` (`slices[].branch_name`).
+- `tip slice`: The last slice in spec order; its tree should match `<feature>/work`.
+- `epic spec`: `.stack/<feature>/epic.yml`, the source of truth for slice order, names, and intents.
+- `locked slice`: A slice already merged into `epic-<feature>` and therefore immutable.
+- `unlocked slice`: A slice not yet merged, eligible for rebuild/restack during publish.
+- `preflight`: Mandatory safety checks run before any write flow (fetch, clean tree, branch checks, backups).
+- `publish/rebuild`: Recompute and rewrite unlocked slices from `epic-<feature>..<feature>/work`, then push with `--force-with-lease`.
+- `advance`: Optional post-merge step that locks merged slices, rebuilds remaining unlocked slices, and realigns `<feature>/work` to the new tip.
+- `tip==work invariant`: Required condition that the tip slice tree equals the work branch tree after publish.
 
 ## Normal Agent Functions
 
