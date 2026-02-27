@@ -78,11 +78,11 @@ Recovery:
 
 Symptoms:
 
-- head SHA differs from `locked_heads` in state.
+- a branch already merged into `epic-<feature>` moved unexpectedly.
 
 Recovery:
 
-1. restore locked branch pointer from backup or `locked_heads`
+1. restore the branch pointer from backup ref
 2. push restored pointer with lease
 3. rerun `stack status`
 
@@ -108,7 +108,7 @@ Symptoms:
 Recovery:
 
 1. verify merged state via PR metadata (`gh`)
-2. lock merged branches in state
+2. use `--merged-branch` with verified branch
 3. rebuild unlocked slices from `epic..<work>`
 
 ## 8) Tip and work trees diverged
@@ -139,6 +139,6 @@ Use hard reset only when rollback target is explicit and approved.
 Always finish with:
 
 1. `stack status <feature>`
-2. verify locked heads unchanged
+2. verify merged slices remain intact on epic
 3. verify tip equals work (or intentionally explain mismatch)
 4. proceed with one next command only
