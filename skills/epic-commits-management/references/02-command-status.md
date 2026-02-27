@@ -19,7 +19,6 @@ Produce a read-only health report for one feature stack.
 
 - `<feature>` name (for example `add-market-screen`)
 - optional epic spec at `.stack/<feature>/epic.yml`
-- optional state file at `.stack/<feature>/state.json`
 
 Derived branch names:
 
@@ -40,7 +39,7 @@ Derived branch names:
 
 3. Resolve slice order.
 
-   - Preferred: read ordered `slices[].branch_name` from plan.
+   - Preferred: read ordered `slices[].branch_name` from epic spec.
    - Fallback: discover local branches matching `<feature>/*` and sort lexicographically.
 
 4. Resolve tip slice.
@@ -53,19 +52,19 @@ Derived branch names:
    - `git diff --quiet <tip-slice>..<feature>/work`
    - non-zero means tip drifted from work.
 
-6. Verify locked slice integrity when state exists.
+6. Detect merged (effectively locked) slices.
 
-   - Read `locked_branches` and `locked_heads` from state.
-   - For each locked branch, compare current head to recorded head.
-   - Any mismatch is a hard fail.
+   - For each slice branch that exists, check:
+   - `git merge-base --is-ancestor <slice-branch> epic-<feature>`
+   - Ancestor slices are considered locked and must not be rewritten.
 
 7. Show work summary against base.
 
    - `git diff --stat epic-<feature>..<feature>/work`
 
 8. Compute likely publish scope.
-   - Which unlocked slices would be rebuilt.
-   - Whether state indicates pending advance.
+   - Which non-merged slice branches would be rebuilt.
+   - Whether publish will create missing slice branches.
 
 ## Output Template
 
@@ -74,7 +73,7 @@ Derived branch names:
 - Slices: ordered list + tip
 - Invariants:
   - tip equals work
-  - locked heads unchanged
+  - merged slices detected (locked by ancestry)
 - Diff summary: `epic..<work>` stat
 - Next action:
   - `stack publish <feature>` when healthy
@@ -85,10 +84,9 @@ Derived branch names:
 - Base missing -> stop and report branch bootstrap command.
 - Work missing -> stop and report branch recreation option.
 - Tip mismatch -> recommend `publish` or explicit work realignment.
-- Locked mismatch -> recommend restore from backup or state head.
 
 ## Notes
 
 - `status` is always read-only.
-- Do not update state in `status`.
+- Do not write `.stack/<feature>/state.json`.
 - Keep the report concise but explicit enough to drive the next command.

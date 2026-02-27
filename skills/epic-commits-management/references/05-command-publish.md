@@ -17,7 +17,6 @@ MVP default is `rebuild` mode.
 - base: `epic-<feature>`
 - work: `<feature>/work`
 - epic spec: `.stack/<feature>/epic.yml`
-- state: `.stack/<feature>/state.json` (if present)
 
 ## Detailed Procedure
 
@@ -27,23 +26,22 @@ Run the shared preflight from `01-core-contract.md`.
 
 If preflight fails, stop.
 
-### 2) Load plan and state
+### 2) Load epic spec and resolve lock set
 
-1. Parse plan slices in listed order (`slices[].branch_name`).
-2. Read locked branches from state (default empty).
-3. Validate that each locked branch appears merged into `epic-<feature>`.
-   - `git merge-base --is-ancestor <locked-branch> epic-<feature>`
-4. If a locked branch is not merged, stop and require manual recovery.
+1. Parse epic spec slices in listed order (`slices[].branch_name`).
+2. For each existing slice branch, detect merged status:
+   - `git merge-base --is-ancestor <slice-branch> epic-<feature>`
+3. Treat merged slices as locked.
+4. Never rewrite locked slices.
 
 ### 3) Resolve slice scopes for this publish
 
-Plan does not define `paths`, so ownership is runtime-resolved.
+Epic spec does not define `paths`, so ownership is runtime-resolved.
 
 1. Get diff entries from `epic..<work>`:
    - `git diff --name-status --no-renames epic-<feature>..<feature>/work`
-2. Reuse `state.resolved_paths` when present and still valid.
-3. For missing coverage, infer ownership from prior slice history and slice `intent`.
-4. Fail on:
+2. Infer ownership from existing slice history and slice `intent`.
+3. Fail on:
    - unassigned path
    - ambiguous path
 
@@ -59,8 +57,8 @@ Create backup refs for each branch that may move:
 ### 5) Build stack on a temp branch
 
 1. Create temp build branch from base:
-   - `git switch -c .tmp/epic-commits-management/<feature>/<timestamp> epic-<feature>`
-2. Iterate slices in plan order.
+   - `git switch -c tmp/epic-commits-management/<feature>/<timestamp> epic-<feature>`
+2. Iterate slices in spec order.
 
 For each slice:
 
@@ -77,25 +75,21 @@ For each slice:
   3. If there are staged changes:
      - `git commit -m "<branch_name>: <intent>"`
   4. If no staged changes:
-     - keep current HEAD and mark slice as `empty=true`
+     - keep current HEAD and mark slice as empty in report output
   5. Point slice branch to current HEAD:
      - `git branch -f <branch_name> HEAD`
 
 ### 6) Validate final invariants
 
-1. Resolve tip as last plan slice.
+1. Resolve tip as last spec slice.
 2. Verify tip equals work:
    - `git diff --quiet <tip-slice>..<feature>/work`
 3. If mismatch, stop and report file-level divergence.
 
-### 7) Update state
+### 7) Do not write persistent state
 
-Write/update `.stack/<feature>/state.json` with:
-
-- locked branches and locked heads
-- current slice branch heads and empty flags
-- resolved runtime ownership (`resolved_paths`)
-- `last_publish` metadata (`mode`, `epic_head`, `work_head`, `tip_head`, `timestamp`)
+- Do not create or update `.stack/<feature>/state.json`.
+- Report runtime ownership/empty slices directly in command output.
 
 ### 8) Push rewritten branches
 
@@ -117,13 +111,12 @@ If policy is to keep work pinned to tip:
 ### Empty slices
 
 - Keep branch at current HEAD.
-- Mark `empty=true` in state.
 - Preserve slice order; do not auto-delete slice entries.
 
-### Plan changed after merges
+### Spec changed after merges
 
-- Locked slices remain immutable regardless of plan edits.
-- Apply plan changes only to unlocked slices.
+- Locked slices remain immutable regardless of spec edits.
+- Apply spec changes only to unlocked slices.
 
 ## Output Format
 

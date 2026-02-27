@@ -19,8 +19,8 @@ This command should not rewrite Git branches. It is planning and validation only
 
 Versioning policy:
 
-- Commit the plan on `epic-<feature>`.
-- Sync `<feature>/work` to that committed plan before publishing slices.
+- Keep `epic.yml` committed on `<feature>/work`.
+- Do not require an `epic-<feature>` copy for publish.
 
 ## Bootstrap Procedure
 

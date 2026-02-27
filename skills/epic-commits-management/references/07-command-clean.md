@@ -34,7 +34,7 @@ Use shared preflight from `01-core-contract.md`.
 Create backups for:
 
 - `<feature>/work`
-- slice branches from plan that may be deleted
+- slice branches from epic spec that may be deleted
 
 ### 4) Delete work branch
 
@@ -57,21 +57,21 @@ Deletion commands:
 - `git push origin --delete <slice branch_name>`
 - `git branch -D <slice branch_name>`
 
-### 6) State cleanup
+### 6) Spec cleanup
 
-Choose one policy:
+`epic.yml` is disposable with `<feature>/work`.
 
-- archive state (preferred): move `.stack/<feature>/state.json` to a dated archive path
-- keep state for audit and mark `closed=true`
+- keep it if your team wants a reusable spec template
+- otherwise let it disappear with work branch cleanup
 
-Avoid deleting `epic.yml` unless repo explicitly treats it as temporary.
+Do not write or maintain `.stack/<feature>/state.json` during clean.
 
 ## Output Format
 
 - Result (`pass` or `fail`)
 - Work branch deletion status
 - Slice cleanup status (deleted/kept)
-- State cleanup status
+- Epic spec cleanup status
 - Any residual manual tasks
 
 ## Failure Handling

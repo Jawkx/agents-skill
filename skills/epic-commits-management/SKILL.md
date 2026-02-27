@@ -65,8 +65,8 @@ If any function fails at checks or push time, load [references/10-recovery.md](r
 - Use `--force-with-lease`, never plain `--force`.
 - Never rewrite locked slices.
 - Treat `<feature>/work` as the only human-edit branch.
-- Keep stack spec in `.stack/<feature>/epic.yml` committed on `epic-<feature>` as source of truth.
-- Keep deterministic behavior: same plan and same trees should produce the same slice trees.
+- Keep stack spec in `.stack/<feature>/epic.yml` on `<feature>/work` as source of truth.
+- Keep deterministic behavior: same epic spec and same trees should produce the same slice trees.
 
 ## Default Reasoning Mode
 

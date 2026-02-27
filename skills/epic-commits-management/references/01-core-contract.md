@@ -6,9 +6,9 @@ Use this file as the shared baseline for every command.
 
 - Branch model and naming
 - Invariants
-- Repo files and state model
+- Repo files
 - Mandatory preflight for write commands
-- Plan schema and validation rules
+- Epic spec schema and validation rules
 - Slice scope resolution model
 - Reporting expectations
 
@@ -28,70 +28,28 @@ epic-<feature>
   <- <slice-N branch_name>   (tip)
 ```
 
-Recommended branch naming for slices is `<feature>/<NN>-<details>`, but this is a convention only. The source of truth is `branch_name` values in the plan file.
+Recommended branch naming for slices is `<feature>/<NN>-<details>`, but this is a convention only. The source of truth is `branch_name` values in `epic.yml`.
 
 ## Invariants
 
-1. Slice ancestry is linear from `epic-<feature>` to the tip slice following plan order.
+1. Slice ancestry is linear from `epic-<feature>` to the tip slice following spec order.
 2. Tree equality holds at the tip: `tree(tip-slice) == tree(<feature>/work)`.
 3. Humans and automation edit only `<feature>/work` directly.
 4. Locked slices are immutable once merged into `epic-<feature>`.
 
 ## Repo Files
 
-Prefer per-feature state to avoid collisions:
-
 - Stack spec (epic spec): `.stack/<feature>/epic.yml`
-- State: `.stack/<feature>/state.json`
 
 Source-of-truth policy:
 
-- Commit `.stack/<feature>/epic.yml` on `epic-<feature>`.
-- Treat `epic-<feature>` as the canonical plan branch.
-- Keep `<feature>/work` synced with epic's plan version before stack generation.
-- Keep `state.json` as runtime metadata (often local-only unless repo policy says otherwise).
+- Keep `.stack/<feature>/epic.yml` on `<feature>/work`.
+- Treat `<feature>/work` as the canonical spec branch.
+- If a temporary copy exists on `epic-<feature>`, treat it as informational only.
 
 Allow `.stack/epic.yml` only as a legacy fallback when the repo already uses it.
 
-### Recommended `state.json` shape
-
-```json
-{
-  "feature": "add-market-screen",
-  "base": "epic-add-market-screen",
-  "work": "add-market-screen/work",
-  "locked_branches": ["add-market-screen/01-redux-store"],
-  "locked_heads": {
-    "add-market-screen/01-redux-store": "a1b2c3d4"
-  },
-  "slices": [
-    {
-      "branch_name": "add-market-screen/01-redux-store",
-      "head": "a1b2c3d4",
-      "locked": true
-    },
-    {
-      "branch_name": "add-market-screen/02-market-api",
-      "head": "e5f6a7b8",
-      "locked": false,
-      "empty": false
-    }
-  ],
-  "resolved_paths": {
-    "add-market-screen/01-redux-store": ["src/store/**", "src/types/**"],
-    "add-market-screen/02-market-api": ["src/api/market/**"]
-  },
-  "last_publish": {
-    "mode": "rebuild",
-    "epic_head": "1111111",
-    "work_head": "2222222",
-    "tip_head": "3333333",
-    "timestamp": "2026-02-26T10:00:00Z"
-  }
-}
-```
-
-`resolved_paths` is runtime metadata generated or updated during publish. It is not part of the plan schema.
+No persistent runtime state file is required. Commands should not write `.stack/<feature>/state.json`.
 
 ## Mandatory Preflight (write commands only)
 
@@ -156,22 +114,22 @@ Validation rules:
 
 ## Slice Scope Resolution Model
 
-Plan files intentionally avoid per-path ownership.
+Epic spec files intentionally avoid per-path ownership.
 
 Runtime behavior:
 
 - `publish` computes changed paths from `epic-<feature>..<feature>/work`
-- it resolves per-slice path ownership using state (`resolved_paths`) when available
-- if missing, it infers ownership from existing slice history and intent-guided clustering
+- it infers per-slice path ownership during the run using existing slice history and slice intents
 - ambiguous or unassigned ownership is a hard fail and must be resolved before rewrite
+- ownership mapping is ephemeral (reported in output), not written to disk
 
-This keeps `epic.yml` minimal while preserving deterministic rebuilds via `state.json`.
+This keeps `epic.yml` minimal while still allowing deterministic rebuilds when branch history is stable.
 
 ## Locked Slice Policy
 
 - Lock slices only after merge into `epic-<feature>` is confirmed.
 - Never rewrite locked slice branches.
-- If a new fix touches locked-owned paths, place it in the earliest unlocked slice or append a tail fix slice branch in the plan.
+- If a new fix touches locked-owned paths, place it in the earliest unlocked slice or append a tail fix slice branch in `epic.yml`.
 
 ## Reporting Contract
 

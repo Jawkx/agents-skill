@@ -38,8 +38,8 @@ Derived names:
 
 Spec ownership policy:
 
-- Plan is authored and committed on `epic-<feature>`.
-- Work branch must consume the same committed plan version before publish.
+- Epic spec is authored and committed on `<feature>/work`.
+- Publish uses the `epic.yml` from `<feature>/work`.
 
 ## High-Level Flow
 
@@ -63,10 +63,9 @@ If user approves:
 
 1. bootstrap spec from `assets/epic.template.yml`
 2. infer initial ordered slices from commit and directory clusters
-3. write `.stack/<feature>/epic.yml` on `epic-<feature>`
-4. commit the new spec on `epic-<feature>`
-5. sync `<feature>/work` with that spec commit
-6. report generated slice order and continue to Step 2
+3. write `.stack/<feature>/epic.yml` on `<feature>/work`
+4. commit the new spec on `<feature>/work`
+5. report generated slice order and continue to Step 2
 
 If user declines:
 
@@ -78,7 +77,7 @@ If user declines:
 
 ### 2) Sync spec against current work branch
 
-Validate and update only plan metadata (order, branch names, intents).
+Validate and update only spec metadata (order, branch names, intents).
 
 Rules:
 
@@ -93,16 +92,15 @@ Behavior:
 
 When spec changes are applied:
 
-1. apply plan edits on `epic-<feature>`
-2. commit plan updates on `epic-<feature>`
-3. sync `<feature>/work` to the updated plan commit
-4. continue publish from the synced work branch
+1. apply spec edits on `<feature>/work`
+2. commit spec updates on `<feature>/work`
+3. continue publish from the updated work branch
 
-Do not leave plan changes only on `<feature>/work`.
+Do not leave spec changes only in a detached workspace.
 
 ### 3) Publish unlocked slices
 
-After spec is valid and synced:
+After spec is valid and ready:
 
 1. rebuild unlocked slices from `epic..<work>`
 2. keep locked slices immutable
@@ -127,8 +125,7 @@ Stop and report clearly when any of these occur:
 - work branch missing
 - base branch missing
 - spec file missing and user declined generation
-- plan commit on `epic-<feature>` failed
-- work branch could not sync to epic plan commit
+- spec commit on `<feature>/work` failed
 - slice ownership inference is ambiguous or incomplete
 - locked slice would be rewritten
 - tip tree does not equal work tree after publish
@@ -145,7 +142,7 @@ For each anomaly include:
 Return a concise summary:
 
 1. Spec state
-   - generated/synced/unchanged/blocked and whether committed on epic
+   - generated/updated/unchanged/blocked and whether committed on work
 2. Stack updates
    - branches rebuilt/unchanged/locked
 3. Validation

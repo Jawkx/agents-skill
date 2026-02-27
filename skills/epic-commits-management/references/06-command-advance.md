@@ -15,8 +15,8 @@ This keeps the review stack aligned with the latest epic head while preserving i
 ## Inputs
 
 - `<feature>`
-- merged branch name from plan (`--merged-branch`)
-- epic spec and state files under `.stack/<feature>/`
+- merged branch name from epic spec (`--merged-branch`)
+- epic spec under `.stack/<feature>/epic.yml`
 
 ## Detailed Procedure
 
@@ -26,8 +26,8 @@ Use the shared preflight from `01-core-contract.md`.
 
 ### 2) Resolve merge target slice
 
-1. Find the target branch in `slices[].branch_name` from plan.
-2. If target is missing from plan, fail with explicit guidance.
+1. Find the target branch in `slices[].branch_name` from epic spec.
+2. If target is missing from epic spec, fail with explicit guidance.
 3. If target branch ref is missing, fail with explicit restore/bootstrap guidance.
 
 ### 3) Verify merged status
@@ -43,12 +43,11 @@ Fallback when squash merges are used:
 
 If neither ancestry nor PR proof confirms merge, stop.
 
-### 4) Lock merged range
+### 4) Lock merged range (ephemeral)
 
-1. Determine lock boundary by plan order up to merged branch.
-2. Union with existing `locked_branches` from state.
-3. Record current heads for locked branches into `locked_heads`.
-4. Fail if any locked branch cannot be resolved.
+1. Determine lock boundary by spec order up to merged branch.
+2. During this run, treat that range as locked.
+3. Never rewrite branches in the locked range.
 
 ### 5) Rebuild unmerged slices
 
@@ -79,15 +78,15 @@ If using `gh`:
 
 ## Guardrails
 
-- Never unlock previously locked branches.
 - Never rewrite locked slice branches.
-- If merged branch is already locked, treat as no-op and report.
-- If all slices are locked, `advance` should only align work and state.
+- If merged branch is already in merged ancestry, treat as no-op and report.
+- If all slices are locked, `advance` should only align work branch to tip.
+- Do not write `.stack/<feature>/state.json`.
 
 ## Output Format
 
 - Result (`pass` or `fail`)
-- Newly locked branches
+- Newly locked branches (for this run)
 - Rebuilt branches and head changes
 - Work branch reset result
 - Optional PR retarget actions
