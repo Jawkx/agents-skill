@@ -1,6 +1,6 @@
 ---
 name: epic-commits-management
-description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and <feature>/<NN>-<details>, including health checks, planning, publish/restack, post-merge advance, and cleanup.
+description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and ordered slice branches defined in epic.yml, including health checks, planning, publish/restack, post-merge advance, and cleanup.
 ---
 
 # Epic Commits Management
@@ -22,7 +22,7 @@ Use progressive disclosure and load only what you need:
 3. Recovery (load only when something fails)
    - [references/10-recovery.md](references/10-recovery.md)
 4. Template asset
-   - `assets/plan.template.yml`
+   - `assets/epic.template.yml`
 
 ## Progressive Disclosure
 
@@ -33,11 +33,13 @@ Do not read every reference file up front. Start with the core contract, then lo
 These are conceptual functions you execute while reasoning. The reference files contain the full operational detail.
 
 - `assess_stack(feature)`
+
   - Purpose: evaluate branch health and invariant status without writes.
   - Reference: [references/02-command-status.md](references/02-command-status.md)
   - Typical outcome: pass/fail report and the next recommended action.
 
-- `generate_stacks(feature, merged_id?)`
+- `generate_stacks(feature, merged_branch?)`
+
   - Purpose: single orchestrator for spec generation/sync, stack publish, and optional post-merge advance.
   - Reference: [references/04-function-generate-stacks.md](references/04-function-generate-stacks.md)
   - Typical outcome: spec exists and is up to date, unlocked slices are rebuilt, and merged range is locked when requested.
@@ -63,7 +65,7 @@ If any function fails at checks or push time, load [references/10-recovery.md](r
 - Use `--force-with-lease`, never plain `--force`.
 - Never rewrite locked slices.
 - Treat `<feature>/work` as the only human-edit branch.
-- Keep stack spec in `.stack/<feature>/plan.yml` committed on `epic-<feature>` as source of truth.
+- Keep stack spec in `.stack/<feature>/epic.yml` committed on `epic-<feature>` as source of truth.
 - Keep deterministic behavior: same plan and same trees should produce the same slice trees.
 
 ## Default Reasoning Mode
@@ -83,4 +85,4 @@ For any function execution, return:
 
 ## Skill Assets
 
-- Plan template: `assets/plan.template.yml`
+- Epic template: `assets/epic.template.yml`

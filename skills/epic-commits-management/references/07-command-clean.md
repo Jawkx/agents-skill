@@ -34,7 +34,7 @@ Use shared preflight from `01-core-contract.md`.
 Create backups for:
 
 - `<feature>/work`
-- slice branches that may be deleted
+- slice branches from plan that may be deleted
 
 ### 4) Delete work branch
 
@@ -54,8 +54,8 @@ Respect repo policy:
 
 Deletion commands:
 
-- `git push origin --delete <feature>/<NN>-<details>`
-- `git branch -D <feature>/<NN>-<details>`
+- `git push origin --delete <slice branch_name>`
+- `git branch -D <slice branch_name>`
 
 ### 6) State cleanup
 
@@ -64,7 +64,7 @@ Choose one policy:
 - archive state (preferred): move `.stack/<feature>/state.json` to a dated archive path
 - keep state for audit and mark `closed=true`
 
-Avoid deleting plan unless repo explicitly treats it as temporary.
+Avoid deleting `epic.yml` unless repo explicitly treats it as temporary.
 
 ## Output Format
 

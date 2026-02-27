@@ -8,14 +8,14 @@ stack plan <feature>
 
 ## Goal
 
-Create or validate the slicing contract at `.stack/<feature>/plan.yml`.
+Create or validate the slicing contract at `.stack/<feature>/epic.yml`.
 
 This command should not rewrite Git branches. It is planning and validation only.
 
 ## Plan Location
 
-- Preferred: `.stack/<feature>/plan.yml`
-- Legacy fallback: `.stack/plan.yml` when repo already uses single-feature layout
+- Preferred: `.stack/<feature>/epic.yml`
+- Legacy fallback: `.stack/epic.yml` when repo already uses single-feature layout
 
 Versioning policy:
 
@@ -26,7 +26,7 @@ Versioning policy:
 
 1. Ensure feature folder exists.
    - `mkdir -p .stack/<feature>`
-2. If plan is missing, create it from `assets/plan.template.yml` and adapt values.
+2. If epic spec is missing, create it from `assets/epic.template.yml` and adapt values.
 3. Fill required fields:
    - `feature`
    - `base`
@@ -40,52 +40,44 @@ Validate structure:
 - `feature` equals command argument
 - `base` is `epic-<feature>`
 - `work` is `<feature>/work`
-- each slice has `id`, `branch_suffix`, `intent`, `paths`
+- each slice has `branch_name`, `intent`
 
 Validate ordering and naming:
 
-- IDs are unique two-digit strings
-- IDs are strictly increasing
-- `branch_suffix` values are stable and unique
+- `branch_name` values are unique
+- each `branch_name` starts with `<feature>/`
+- order is intentional and stable
 
-Validate path ownership:
+Validate intent quality:
 
-1. Compute changed files from `epic..<work>`.
-2. Match each file against slice globs.
-3. Fail if any file is:
-   - unassigned (zero matches)
-   - ambiguous (more than one match)
+- each `intent` is non-empty
+- intent differentiates one slice from another
 
 ## Recommended Slice Design
 
 - Keep each slice reviewable (small and coherent).
-- Group by intent, then by path.
-- Put broad churn early when practical:
-  - renames/moves
-  - lockfiles
-  - formatting-only updates
-- Use stable paths to reduce reshuffling across republish runs.
+- Group by intent and review narrative.
+- Put broad churn early when practical (renames, lockfiles, large mechanical changes).
+- Keep branch names stable to reduce reshuffling across republish runs.
 
 ## Output Format
 
 - Result: `valid` or `invalid`
 - Plan file path used
 - Slice table:
-  - `id`
-  - branch name
-  - intent
-  - path coverage hints
+  - `branch_name`
+  - `intent`
 - Problems:
-  - unassigned files
-  - ambiguous matches
-  - ordering/ID violations
+  - missing required fields
+  - duplicate branch names
+  - weak or empty intent statements
 - Suggested patch to the plan when invalid
 
 ## Failure Handling
 
-- If work branch is missing, validate structure only and skip coverage checks.
+- If work branch is missing, validate structure only.
 - If base is missing, fail and request branch bootstrap.
-- If coverage fails, do not proceed to publish.
+- If plan is structurally invalid, do not proceed to publish.
 
 ## Handoff
 

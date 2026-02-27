@@ -1,0 +1,13 @@
+feature: add-market-screen
+base: epic-add-market-screen
+work: add-market-screen/work
+
+slices:
+  - branch_name: add-market-screen/01-redux-store
+    intent: Introduce store wiring and domain types
+
+  - branch_name: add-market-screen/02-market-api
+    intent: Add market API client and query logic
+
+  - branch_name: add-market-screen/03-market-screen-ui
+    intent: Add market screen UI and hooks

@@ -108,7 +108,7 @@ Symptoms:
 Recovery:
 
 1. verify merged state via PR metadata (`gh`)
-2. lock IDs in state
+2. lock merged branches in state
 3. rebuild unlocked slices from `epic..<work>`
 
 ## 8) Tip and work trees diverged

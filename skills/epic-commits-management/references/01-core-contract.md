@@ -9,28 +9,30 @@ Use this file as the shared baseline for every command.
 - Repo files and state model
 - Mandatory preflight for write commands
 - Plan schema and validation rules
-- File assignment rules
+- Slice scope resolution model
 - Reporting expectations
 
 ## Branch Model
 
 - Base branch: `epic-<feature>`
 - Work branch: `<feature>/work` (disposable, human-edited)
-- Slice branches: `<feature>/<NN>-<details>` where `NN` is `01..99`
+- Slice branches: ordered list from `.stack/<feature>/epic.yml`
 
-Desired shape:
+Plan-first shape:
 
-```
+```text
 epic-<feature>
-  <- <feature>/01-...
-  <- <feature>/02-...
+  <- <slice-1 branch_name>
+  <- <slice-2 branch_name>
   <- ...
-  <- <feature>/NN-...   (tip)
+  <- <slice-N branch_name>   (tip)
 ```
+
+Recommended branch naming for slices is `<feature>/<NN>-<details>`, but this is a convention only. The source of truth is `branch_name` values in the plan file.
 
 ## Invariants
 
-1. Slice ancestry is linear from `epic-<feature>` to the tip slice.
+1. Slice ancestry is linear from `epic-<feature>` to the tip slice following plan order.
 2. Tree equality holds at the tip: `tree(tip-slice) == tree(<feature>/work)`.
 3. Humans and automation edit only `<feature>/work` directly.
 4. Locked slices are immutable once merged into `epic-<feature>`.
@@ -39,17 +41,17 @@ epic-<feature>
 
 Prefer per-feature state to avoid collisions:
 
-- Stack spec (plan): `.stack/<feature>/plan.yml`
+- Stack spec (epic spec): `.stack/<feature>/epic.yml`
 - State: `.stack/<feature>/state.json`
 
 Source-of-truth policy:
 
-- Commit `.stack/<feature>/plan.yml` on `epic-<feature>`.
+- Commit `.stack/<feature>/epic.yml` on `epic-<feature>`.
 - Treat `epic-<feature>` as the canonical plan branch.
 - Keep `<feature>/work` synced with epic's plan version before stack generation.
 - Keep `state.json` as runtime metadata (often local-only unless repo policy says otherwise).
 
-Allow `.stack/plan.yml` only as a legacy fallback when the repo already uses it.
+Allow `.stack/epic.yml` only as a legacy fallback when the repo already uses it.
 
 ### Recommended `state.json` shape
 
@@ -58,43 +60,38 @@ Allow `.stack/plan.yml` only as a legacy fallback when the repo already uses it.
   "feature": "add-market-screen",
   "base": "epic-add-market-screen",
   "work": "add-market-screen/work",
-  "locked_ids": ["01"],
+  "locked_branches": ["add-market-screen/01-redux-store"],
   "locked_heads": {
-    "add-market-screen/01-add-redux-store": "a1b2c3d4"
+    "add-market-screen/01-redux-store": "a1b2c3d4"
   },
   "slices": [
     {
-      "id": "01",
-      "branch": "add-market-screen/01-add-redux-store",
+      "branch_name": "add-market-screen/01-redux-store",
       "head": "a1b2c3d4",
       "locked": true
     },
     {
-      "id": "02",
-      "branch": "add-market-screen/02-market-api",
+      "branch_name": "add-market-screen/02-market-api",
       "head": "e5f6a7b8",
       "locked": false,
       "empty": false
     }
   ],
+  "resolved_paths": {
+    "add-market-screen/01-redux-store": ["src/store/**", "src/types/**"],
+    "add-market-screen/02-market-api": ["src/api/market/**"]
+  },
   "last_publish": {
     "mode": "rebuild",
     "epic_head": "1111111",
     "work_head": "2222222",
     "tip_head": "3333333",
     "timestamp": "2026-02-26T10:00:00Z"
-  },
-  "prs": [
-    {
-      "id": "02",
-      "number": 123,
-      "url": "https://github.com/org/repo/pull/123",
-      "base": "add-market-screen/01-add-redux-store",
-      "head": "add-market-screen/02-market-api"
-    }
-  ]
+  }
 }
 ```
+
+`resolved_paths` is runtime metadata generated or updated during publish. It is not part of the plan schema.
 
 ## Mandatory Preflight (write commands only)
 
@@ -134,9 +131,9 @@ If any preflight check fails, stop immediately and report:
 - observed output
 - one concrete recovery command
 
-## Plan Schema
+## Epic Spec Schema
 
-Plan file: `.stack/<feature>/plan.yml`
+Epic spec file: `.stack/<feature>/epic.yml`
 
 Required fields:
 
@@ -147,40 +144,34 @@ Required fields:
 
 Each slice requires:
 
-- `id`: two digits (`"01"` to `"99"`)
-- `branch_suffix`: short stable slug
+- `branch_name`: full branch name for that slice
 - `intent`: short purpose statement
-- `paths`: non-empty glob list
 
 Validation rules:
 
-- IDs are unique and sorted ascending
-- No duplicate `branch_suffix`
-- Every changed file must map to exactly one slice
-- Renames should resolve to a single slice ownership decision
+- `branch_name` values are unique
+- `branch_name` should start with `<feature>/`
+- slice order is explicit by list position
+- intent is non-empty and stable enough to guide restacks
 
-## File Assignment Rules
+## Slice Scope Resolution Model
 
-Compute changed paths from tree diff:
+Plan files intentionally avoid per-path ownership.
 
-- `git diff --name-status --no-renames epic-<feature>..<feature>/work`
+Runtime behavior:
 
-Assign each path against `paths` globs:
+- `publish` computes changed paths from `epic-<feature>..<feature>/work`
+- it resolves per-slice path ownership using state (`resolved_paths`) when available
+- if missing, it infers ownership from existing slice history and intent-guided clustering
+- ambiguous or unassigned ownership is a hard fail and must be resolved before rewrite
 
-- zero matching slices -> `unassigned` (fail)
-- multiple matching slices -> `ambiguous` (fail)
-- one matching slice -> assigned
-
-Renames and moves:
-
-- Prefer dedicated early slice for rename-heavy changes.
-- If old and new paths map to different slices, fail and request plan adjustment.
+This keeps `epic.yml` minimal while preserving deterministic rebuilds via `state.json`.
 
 ## Locked Slice Policy
 
 - Lock slices only after merge into `epic-<feature>` is confirmed.
 - Never rewrite locked slice branches.
-- If a new fix touches locked-owned paths, place it in earliest unlocked slice or append a tail fix slice (`<feature>/<NN>-fix-<topic>`).
+- If a new fix touches locked-owned paths, place it in the earliest unlocked slice or append a tail fix slice branch in the plan.
 
 ## Reporting Contract
 

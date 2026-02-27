@@ -18,6 +18,7 @@ Produce a read-only health report for one feature stack.
 ## Inputs
 
 - `<feature>` name (for example `add-market-screen`)
+- optional epic spec at `.stack/<feature>/epic.yml`
 - optional state file at `.stack/<feature>/state.json`
 
 Derived branch names:
@@ -28,34 +29,39 @@ Derived branch names:
 ## Procedure
 
 1. Refresh refs.
+
    - `git fetch --all --prune`
 
 2. Verify base and work branch visibility.
+
    - Check local branch first.
    - If missing locally, check remote branch (`origin/<branch>`).
    - Fail if either branch is missing.
 
-3. Discover slice branches.
-   - Find names matching `<feature>/<NN>-*` from local refs.
-   - Include remote-only slices if needed for visibility.
-   - Sort by `NN` ascending.
+3. Resolve slice order.
+
+   - Preferred: read ordered `slices[].branch_name` from plan.
+   - Fallback: discover local branches matching `<feature>/*` and sort lexicographically.
 
 4. Resolve tip slice.
-   - Tip is highest `NN` branch.
+
+   - Tip is last ordered slice.
    - If no slices exist, report that publish will create the stack.
 
 5. Verify invariant `tip == work` when tip exists.
+
    - `git diff --quiet <tip-slice>..<feature>/work`
    - non-zero means tip drifted from work.
 
 6. Verify locked slice integrity when state exists.
-   - Read `locked_ids` and `locked_heads` from state.
-   - For each locked slice branch, compare current head to recorded head.
+
+   - Read `locked_branches` and `locked_heads` from state.
+   - For each locked branch, compare current head to recorded head.
    - Any mismatch is a hard fail.
 
 7. Show work summary against base.
+
    - `git diff --stat epic-<feature>..<feature>/work`
-   - optionally include changed file list and counts.
 
 8. Compute likely publish scope.
    - Which unlocked slices would be rebuilt.

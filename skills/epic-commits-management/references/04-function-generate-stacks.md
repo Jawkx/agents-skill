@@ -3,7 +3,7 @@
 Function:
 
 ```text
-generate_stacks(feature, merged_id?)
+generate_stacks(feature, merged_branch?)
 ```
 
 ## Purpose
@@ -28,13 +28,13 @@ This function replaces running separate planning/publish/advance flows in most c
 ## Input Contract
 
 - `feature` is required.
-- `merged_id` is optional and used when a slice was just merged into epic.
+- `merged_branch` is optional and used when a slice branch was just merged into epic.
 
 Derived names:
 
 - base: `epic-<feature>`
 - work: `<feature>/work`
-- spec file: `.stack/<feature>/plan.yml`
+- spec file: `.stack/<feature>/epic.yml`
 
 Spec ownership policy:
 
@@ -51,22 +51,22 @@ If base branch or work branch is missing, stop and report anomaly with recovery 
 
 ### 1) Resolve stack spec state
 
-Check whether `.stack/<feature>/plan.yml` exists.
+Check whether `.stack/<feature>/epic.yml` exists.
 
 #### If spec is missing
 
 Ask the user one targeted question:
 
-- "No stack spec exists at `.stack/<feature>/plan.yml`. Generate one now from current `epic..<work>` changes?"
+- "No stack spec exists at `.stack/<feature>/epic.yml`. Generate one now from current `epic..<work>` changes?"
 
 If user approves:
 
-1. bootstrap spec from `assets/plan.template.yml`
-2. infer initial slices from changed-path clusters (stable directory ownership first)
-3. write `.stack/<feature>/plan.yml` on `epic-<feature>`
+1. bootstrap spec from `assets/epic.template.yml`
+2. infer initial ordered slices from commit and directory clusters
+3. write `.stack/<feature>/epic.yml` on `epic-<feature>`
 4. commit the new spec on `epic-<feature>`
 5. sync `<feature>/work` with that spec commit
-6. report generated slices and continue to Step 2
+6. report generated slice order and continue to Step 2
 
 If user declines:
 
@@ -78,18 +78,18 @@ If user declines:
 
 ### 2) Sync spec against current work branch
 
-Validate and update spec based on `git diff --name-status --no-renames epic-<feature>..<feature>/work`.
+Validate and update only plan metadata (order, branch names, intents).
 
 Rules:
 
-- every changed path must map to exactly one slice
-- preserve slice ID stability whenever possible
-- do not mutate locked slice IDs
+- each slice has `branch_name` and `intent`
+- branch names remain stable whenever possible
+- do not rename locked slice branches
 
 Behavior:
 
-- if update is deterministic (for example obvious new path under an existing slice), apply spec update directly
-- if assignment is ambiguous, stop and report anomaly with concrete suggested edits
+- if update is deterministic, apply spec update directly
+- if update is ambiguous, stop and report anomaly with concrete suggested edits
 
 When spec changes are applied:
 
@@ -111,14 +111,14 @@ After spec is valid and synced:
 
 ### 4) Optional advance behavior
 
-If `merged_id` is provided:
+If `merged_branch` is provided:
 
 1. verify merged slice status (ancestry or PR proof)
-2. lock `01..merged_id`
+2. lock all plan-ordered slices up to merged branch
 3. rebuild remaining unlocked slices
 4. reset `<feature>/work` to new tip
 
-If `merged_id` is not provided, skip lock progression.
+If `merged_branch` is not provided, skip lock progression.
 
 ## Anomaly Contract (must tell user)
 
@@ -129,7 +129,7 @@ Stop and report clearly when any of these occur:
 - spec file missing and user declined generation
 - plan commit on `epic-<feature>` failed
 - work branch could not sync to epic plan commit
-- ambiguous/unassigned file ownership
+- slice ownership inference is ambiguous or incomplete
 - locked slice would be rewritten
 - tip tree does not equal work tree after publish
 - push rejected even with `--force-with-lease`
