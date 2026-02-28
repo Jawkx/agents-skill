@@ -1,103 +1,88 @@
 ---
 name: epic-commits-management
-description: Agent workflow for turning a messy feature work branch into a stable review stack and maintaining it through sequential merges. Use when reasoning about epic-<feature>, <feature>/work, and ordered slice branches defined in epic.yml, including health checks, planning, publish/restack, post-merge advance, and cleanup. READ THIS if epic were mentioned by the user
+description: Intent-driven workflow prompts for managing epic slice branches during review and merge cycles. Use when users mention epic stacks, stacked PRs, slice branches, or review comments that must land on a specific branch and restack descendants safely.
 ---
 
 # Epic Commits Management
 
-This is an agent reasoning skill, not a standalone CLI product. Treat it as a playbook for deciding what to do, what to validate, and which Git operations to run.
+This skill is a decision playbook for stacked branch maintenance.
 
-The goal is to keep day-to-day development fast on `<feature>/work` while maintaining a clean, deterministic review stack of slice branches.
+Use intent first:
 
-## How This Skill Is Structured
+- identify which slice the user actually wants to change
+- apply the fix on that slice branch
+- restack only descendants
+- validate invariants after placement
 
-Use progressive disclosure and load only what you need:
+Do not treat `tip == work` as a branch selection rule.
 
-1. Core contract (always load first)
+## Load Order
+
+1. Always load the core model:
    - [references/01-core-contract.md](references/01-core-contract.md)
-2. Function playbook (load one or more based on intent)
-   - [references/02-command-status.md](references/02-command-status.md)
-   - [references/04-function-generate-stacks.md](references/04-function-generate-stacks.md)
-   - [references/07-command-clean.md](references/07-command-clean.md)
-3. Recovery (load only when something fails)
+2. Then load the workflow that matches user intent:
+   - read-only diagnosis: [references/02-command-status.md](references/02-command-status.md)
+   - plan/spec updates: [references/03-command-plan.md](references/03-command-plan.md)
+   - PR/review fix placement: [references/04-workflow-review-fixes.md](references/04-workflow-review-fixes.md)
+   - full publish from work: [references/05-command-publish.md](references/05-command-publish.md)
+   - post-merge lock progression: [references/06-command-advance.md](references/06-command-advance.md)
+   - cleanup: [references/07-command-clean.md](references/07-command-clean.md)
+3. If anything fails, load:
    - [references/10-recovery.md](references/10-recovery.md)
-4. Template asset
-   - `assets/epic.template.yml`
+4. Behavior checks and examples:
+   - [references/09-acceptance-criteria.md](references/09-acceptance-criteria.md)
 
-## Progressive Disclosure
+## Routing Rules (Intent -> Workflow)
 
-Do not read every reference file up front. Start with the core contract, then load only the function playbook that matches the user goal.
+- User references a PR, branch, or slice number -> run review-fix workflow first.
+- User asks to republish or regenerate whole stack -> run publish workflow.
+- User says a slice has merged into epic -> run advance workflow.
+- User asks for current health only -> run status workflow.
+- User says stack is done -> run clean workflow.
 
-## Glossary
+Default write path for review comments is `04-workflow-review-fixes`.
 
-- `feature`: The stack identifier used to derive branch and file names (for example, `add-market-screen`).
-- `base branch`: `epic-<feature>`, the integration branch slices eventually merge into.
-- `work branch`: `<feature>/work`, the only branch humans and automation edit directly.
-- `slice branch`: One ordered review branch from `.stack/<feature>/epic.yml` (`slices[].branch_name`).
-- `tip slice`: The last slice in spec order; its tree should match `<feature>/work`.
-- `epic spec`: `.stack/<feature>/epic.yml`, the source of truth for slice order, names, and intents.
-- `locked slice`: A slice already merged into `epic-<feature>` and therefore immutable.
-- `unlocked slice`: A slice not yet merged, eligible for rebuild/restack during publish.
-- `preflight`: Mandatory safety checks run before any write flow (fetch, clean tree, branch checks, backups).
-- `publish/rebuild`: Recompute and rewrite unlocked slices from `epic-<feature>..<feature>/work`, then push with `--force-with-lease`.
-- `advance`: Optional post-merge step that locks merged slices, rebuilds remaining unlocked slices, and realigns `<feature>/work` to the new tip.
-- `tip==work invariant`: Required condition that the tip slice tree equals the work branch tree after publish.
+## Branch Targeting Policy (Explicit)
 
-## Normal Agent Functions
+If user references a PR/branch/slice, that is the landing target.
 
-These are conceptual functions you execute while reasoning. The reference files contain the full operational detail.
+- Example mapping in this skill: PR `#378` maps to slice branch `04`.
+- Therefore fixes for PR `#378` land on slice `04` first, not on tip `05`.
 
-- `assess_stack(feature)`
+If target cannot be resolved from context, ask exactly one direct question and block writes until answered.
 
-  - Purpose: evaluate branch health and invariant status without writes.
-  - Reference: [references/02-command-status.md](references/02-command-status.md)
-  - Typical outcome: pass/fail report and the next recommended action.
+## Restack Policy (Explicit)
 
-- `generate_stacks(feature, merged_branch?)`
+After changing target slice `N`:
 
-  - Purpose: single orchestrator for spec generation/sync, stack publish, and optional post-merge advance.
-  - Reference: [references/04-function-generate-stacks.md](references/04-function-generate-stacks.md)
-  - Typical outcome: spec exists and is up to date, unlocked slices are rebuilt, and merged range is locked when requested.
+1. keep the fix commit(s) on `N`
+2. rebuild/restack only descendants `N+1..tip`
+3. do not rewrite ancestors `1..N-1`
+4. do not drop fix directly onto tip-only branch
 
-- `finalize_stack(feature)`
-  - Purpose: clean disposable branches once epic integration is complete.
-  - Reference: [references/07-command-clean.md](references/07-command-clean.md)
-  - Typical outcome: work branch removed and optional slice cleanup done.
+## Invariants (Reframed)
 
-If any function fails at checks or push time, load [references/10-recovery.md](references/10-recovery.md) and run the smallest safe recovery.
+- `tip == work` is a validation outcome after publish/restack.
+- `tip == work` is never used to decide where a fix should be placed.
+- locked slices remain immutable.
 
-## Function Selection Guide
+## Safety Rules
 
-- User asks "what is broken / where are we?" -> run `assess_stack`.
-- User asks to define/fix specs, publish stack, or restack after merge -> run `generate_stacks`.
-- User says epic is fully merged and wants cleanup -> run `finalize_stack`.
+- run preflight before writes
+- create backups before rewriting branch refs
+- use `--force-with-lease` only
+- never rewrite locked slices
 
-`generate_stacks` is the default write path for this skill.
+## Output Contract
 
-## Non-Negotiable Rules
+For any workflow execution, report:
 
-- Run preflight before any write command.
-- Use `--force-with-lease`, never plain `--force`.
-- Never rewrite locked slices.
-- Treat `<feature>/work` as the only human-edit branch.
-- Keep stack spec in `.stack/<feature>/epic.yml` on `<feature>/work` as source of truth.
-- Keep deterministic behavior: same epic spec and same trees should produce the same slice trees.
-
-## Default Reasoning Mode
-
-- Use rebuild mode for MVP behavior.
-- Prefer tree-based checks over commit ancestry assumptions.
-- Keep reports short, explicit, and action-oriented.
-
-## Output Expectations
-
-For any function execution, return:
-
-1. what was checked
-2. what changed (or why nothing changed)
-3. invariant status
-4. one best next step
+1. resolved user intent and target slice
+2. branches changed (target vs descendants)
+3. invariant validation results (`tip == work`, lock integrity)
+4. one recommended next step
 
 ## Skill Assets
 
-- Epic template: `assets/epic.template.yml`
+- template: `assets/epic.template.yml`
+- acceptance examples: `references/09-acceptance-criteria.md`

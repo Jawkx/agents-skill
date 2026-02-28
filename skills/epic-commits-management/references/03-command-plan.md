@@ -1,4 +1,4 @@
-# Command Reference: stack plan
+# Workflow: Plan Slice Contract
 
 Command:
 
@@ -6,11 +6,11 @@ Command:
 stack plan <feature>
 ```
 
-## Goal
+## Intent
 
-Create or validate the slicing contract at `.stack/<feature>/epic.yml`.
+Use when user asks to define or revise slice boundaries/intents.
 
-This command should not rewrite Git branches. It is planning and validation only.
+This workflow never rewrites Git branches.
 
 ## Plan Location
 
@@ -57,8 +57,14 @@ Validate intent quality:
 
 - Keep each slice reviewable (small and coherent).
 - Group by intent and review narrative.
+- Keep ordering meaningful for review comments.
 - Put broad churn early when practical (renames, lockfiles, large mechanical changes).
 - Keep branch names stable to reduce reshuffling across republish runs.
+
+Explicit review-flow guidance:
+
+- If team reviews via stacked PRs, use numbered slices (`01`, `02`, `03`, `04`, `05`).
+- Ensure each PR can receive fixes on its own branch without relying on tip-only edits.
 
 ## Output Format
 
@@ -85,4 +91,8 @@ When plan is valid, next command is:
 
 ```bash
 stack publish <feature>
+
+If user is addressing a PR/review comment, use review-fix workflow instead:
+
+`references/04-workflow-review-fixes.md`
 ```

@@ -1,4 +1,4 @@
-# Command Reference: stack advance
+# Workflow: Advance After Merge
 
 Command:
 
@@ -6,9 +6,9 @@ Command:
 stack advance <feature> --merged-branch <branch_name>
 ```
 
-## Goal
+## Intent
 
-After a slice branch is merged into `epic-<feature>`, lock merged slices and rebuild only the remaining slices.
+Use when a specific slice PR has merged and stack must move forward safely.
 
 This keeps the review stack aligned with the latest epic head while preserving immutable merged history.
 
@@ -57,6 +57,11 @@ Run publish logic for unlocked slices only (same algorithm as `stack publish`):
 - locked slices are immutable
 - unmerged slices are rebuilt from `epic..<work>`
 
+Scope rule:
+
+- if merged boundary is slice `N`, only descendants `N+1..tip` can be rewritten
+- ancestors `1..N` remain locked/untouched
+
 ### 6) Recreate disposable work branch at new tip
 
 After rebuild:
@@ -82,6 +87,7 @@ If using `gh`:
 - If merged branch is already in merged ancestry, treat as no-op and report.
 - If all slices are locked, `advance` should only align work branch to tip.
 - Do not write `.stack/<feature>/state.json`.
+- `tip == work` remains a validation check after advance, not a placement decision.
 
 ## Output Format
 

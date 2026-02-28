@@ -27,6 +27,25 @@ Use when publish/advance partially succeeded and branch pointers must be restore
 
 ## Failure Scenarios
 
+## 0) Fix landed on wrong slice (tip-only mistake)
+
+Symptoms:
+
+- user requested PR/branch `04` fix
+- change was committed on `05` instead
+
+Recovery:
+
+1. restore `05` from backup ref if needed
+2. move/apply fix onto `04`
+3. restack descendants `05..tip` only
+4. validate `tip == work`
+
+Prevention:
+
+- resolve target before writing
+- treat `tip == work` as validation only
+
 ## 1) Dirty tree blocks preflight
 
 Symptoms:
@@ -121,6 +140,10 @@ Recovery:
 
 - if work is source of truth: rerun publish
 - if tip is source of truth: reset work to tip and push with lease
+
+Reminder:
+
+- divergence does not imply future fixes should be placed on tip
 
 ## Last Resort: Reflog Recovery
 

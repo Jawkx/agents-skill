@@ -1,4 +1,4 @@
-# Command Reference: stack publish
+# Workflow: Publish Stack From Work
 
 Command:
 
@@ -6,11 +6,11 @@ Command:
 stack publish <feature>
 ```
 
-## Goal
+## Intent
 
-Generate or update slice branches so the tip slice tree equals `<feature>/work`, without rewriting locked slices.
+Use this when user explicitly wants full stack publish/rebuild from `<feature>/work`.
 
-MVP default is `rebuild` mode.
+Do not use this workflow as a shortcut for PR-targeted fixes. For review comments, use `04-workflow-review-fixes.md`.
 
 ## Inputs
 
@@ -86,6 +86,11 @@ For each slice:
    - `git diff --quiet <tip-slice>..<feature>/work`
 3. If mismatch, stop and report file-level divergence.
 
+Interpretation rule:
+
+- `tip == work` here is a post-publish validation.
+- It does not define where future review fixes should land.
+
 ### 7) Do not write persistent state
 
 - Do not create or update `.stack/<feature>/state.json`.
@@ -118,11 +123,18 @@ If policy is to keep work pinned to tip:
 - Locked slices remain immutable regardless of spec edits.
 - Apply spec changes only to unlocked slices.
 
+### Publish invoked after a targeted fix on slice `N`
+
+- Keep target fix on `N`.
+- Rebuild descendants `N+1..tip`.
+- Never relocate fix to tip-only branch.
+
 ## Output Format
 
 - Result (`pass` or `fail`)
 - Rebuilt slices (with old/new heads)
+- Placement note (full publish vs targeted-restack mode)
 - Locked slices untouched
 - Ownership issues (if any)
-- Tip equality status
+- Tip equality status (validation)
 - Next recommended command

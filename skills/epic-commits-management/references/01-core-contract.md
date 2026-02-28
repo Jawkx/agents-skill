@@ -1,142 +1,128 @@
 # Core Contract
 
-Use this file as the shared baseline for every command.
+Load this file first. It defines placement policy, restack scope, and safety rules.
 
-## Contents
+## Mental Model
 
-- Branch model and naming
-- Invariants
-- Repo files
-- Mandatory preflight for write commands
-- Epic spec schema and validation rules
-- Slice scope resolution model
-- Reporting expectations
+Operate by user intent, not by convenience branch state.
 
-## Branch Model
+- Identify where the user expects the fix to land.
+- Place the change there first.
+- Restack downstream branches as needed.
+- Validate invariants after placement.
 
-- Base branch: `epic-<feature>`
-- Work branch: `<feature>/work` (disposable, human-edited)
-- Slice branches: ordered list from `.stack/<feature>/epic.yml`
+Do not skip to tip-only placement because it is easier.
 
-Plan-first shape:
+## Branch Roles
+
+- base: `epic-<feature>`
+- work: `<feature>/work`
+- slices: ordered `slices[].branch_name` from `.stack/<feature>/epic.yml`
+
+Shape:
 
 ```text
 epic-<feature>
-  <- <slice-1 branch_name>
-  <- <slice-2 branch_name>
-  <- ...
-  <- <slice-N branch_name>   (tip)
+  <- <feature>/01-...
+  <- <feature>/02-...
+  <- <feature>/03-...
+  <- <feature>/04-...
+  <- <feature>/05-... (tip)
 ```
 
-Recommended branch naming for slices is `<feature>/<NN>-<details>`, but this is a convention only. The source of truth is `branch_name` values in `epic.yml`.
+## Placement Policy (What Branch Gets the Fix)
 
-## Invariants
+Resolve target branch in this order:
 
-1. Slice ancestry is linear from `epic-<feature>` to the tip slice following spec order.
-2. Tree equality holds at the tip: `tree(tip-slice) == tree(<feature>/work)`.
-3. Humans and automation edit only `<feature>/work` directly.
-4. Locked slices are immutable once merged into `epic-<feature>`.
+1. explicit user reference
+   - PR number
+   - branch name
+   - slice number (`04`, `05`)
+2. deterministic mapping from context
+   - PR head branch from `gh pr view`
+   - unique spec match from `.stack/<feature>/epic.yml`
+3. if unresolved, ask one direct question and pause writes
 
-## Repo Files
+Hard rule:
 
-- Stack spec (epic spec): `.stack/<feature>/epic.yml`
-
-Source-of-truth policy:
-
-- Keep `.stack/<feature>/epic.yml` on `<feature>/work`.
-- Treat `<feature>/work` as the canonical spec branch.
-- If a temporary copy exists on `epic-<feature>`, treat it as informational only.
-
-Allow `.stack/epic.yml` only as a legacy fallback when the repo already uses it.
-
-No persistent runtime state file is required. Commands should not write `.stack/<feature>/state.json`.
-
-## Mandatory Preflight (write commands only)
-
-Run before `publish`, `advance`, and `clean`.
-
-1. Refresh refs:
-   - `git fetch --all --prune`
-2. Ensure clean tree:
-   - `git status --porcelain` must be empty
-3. Ensure non-detached HEAD:
-   - `git branch --show-current` must be non-empty
-4. Verify branch existence (local or remote):
-   - always: `epic-<feature>`
-   - publish/advance: `<feature>/work`
-5. Create backup refs for every branch that may be rewritten.
-6. Use `--force-with-lease` for all force updates.
-
-### Backup naming
-
-- Pattern: `backup/<feature>/<timestamp>-<branch-slug>`
-- Timestamp format: `YYYYMMDD-HHMMSS`
-- Slug rule: replace `/` with `--`
+- if user references PR/branch/slice, place fix on that branch first
 
 Example:
 
-```bash
-feature="add-market-screen"
-branch="add-market-screen/02-market-api"
-ts="$(date +"%Y%m%d-%H%M%S")"
-slug="${branch//\//--}"
-git branch "backup/$feature/$ts-$slug" "$branch"
-```
+- "Address PR 378" -> resolve PR 378 head -> slice `04` -> commit on `04`
 
-If any preflight check fails, stop immediately and report:
+## Restack Policy (What Moves After Fix)
 
-- failed check
-- observed output
-- one concrete recovery command
+After target slice `N` changes:
 
-## Epic Spec Schema
+1. keep change on `N`
+2. rebuild only descendants `N+1..tip`
+3. do not rewrite ancestors `1..N-1`
+4. do not move fix directly to tip branch unless target is tip
 
-Epic spec file: `.stack/<feature>/epic.yml`
+If `N` is tip, descendants set is empty.
+
+## Invariants (Validation, Not Placement)
+
+1. linear slice ancestry follows spec order
+2. `tree(tip) == tree(work)` after publish/restack
+3. locked slices are immutable
+4. force updates use `--force-with-lease`
+
+Important:
+
+- `tip == work` is checked after branch placement and restack
+- it does not choose the placement branch
+
+## Epic Spec
+
+Spec file: `.stack/<feature>/epic.yml`
 
 Required fields:
 
-- `feature`: must match command argument
-- `base`: must equal `epic-<feature>`
-- `work`: must equal `<feature>/work`
-- `slices`: ordered list of slice definitions
+- `feature`
+- `base`
+- `work`
+- `slices[]` with `branch_name` and `intent`
 
-Each slice requires:
-
-- `branch_name`: full branch name for that slice
-- `intent`: short purpose statement
-
-Validation rules:
+Validation:
 
 - `branch_name` values are unique
-- `branch_name` should start with `<feature>/`
-- slice order is explicit by list position
-- intent is non-empty and stable enough to guide restacks
+- order is explicit by list position
+- intent is non-empty and stable
 
-## Slice Scope Resolution Model
+## Mandatory Preflight For Writes
 
-Epic spec files intentionally avoid per-path ownership.
+Run before review-fix, publish, advance, and clean:
 
-Runtime behavior:
+1. `git fetch --all --prune`
+2. clean tree (`git status --porcelain` empty)
+3. non-detached HEAD (`git branch --show-current` non-empty)
+4. branch visibility for base, work, and target/rewritten slices
+5. backup refs for every branch pointer that may move
+6. enforce `--force-with-lease`
 
-- `publish` computes changed paths from `epic-<feature>..<feature>/work`
-- it infers per-slice path ownership during the run using existing slice history and slice intents
-- ambiguous or unassigned ownership is a hard fail and must be resolved before rewrite
-- ownership mapping is ephemeral (reported in output), not written to disk
+### Backup Naming
 
-This keeps `epic.yml` minimal while still allowing deterministic rebuilds when branch history is stable.
+- `backup/<feature>/<timestamp>-<branch-slug>`
+- timestamp: `YYYYMMDD-HHMMSS`
+- slug: replace `/` with `--`
 
-## Locked Slice Policy
+## Ambiguity Rule
 
-- Lock slices only after merge into `epic-<feature>` is confirmed.
-- Never rewrite locked slice branches.
-- If a new fix touches locked-owned paths, place it in the earliest unlocked slice or append a tail fix slice branch in `epic.yml`.
+When target cannot be resolved from the prompt, ask exactly one direct question.
+
+Use this pattern:
+
+"I cannot resolve the landing slice from context. Should this fix land on `04` or `05`?"
+
+Do not ask multiple questions. Do not write branches before answer.
 
 ## Reporting Contract
 
-Every command should return:
+Always report:
 
-1. Result (`pass` or `fail`)
-2. Checks (what passed or failed)
-3. Branch effects (created, rewritten, untouched, deleted)
-4. Risks or follow-up actions
-5. Single recommended next command
+1. resolved target branch (and how it was resolved)
+2. branch updates (target, descendants, untouched)
+3. invariant checks (`tip == work`, locked integrity)
+4. one next action
