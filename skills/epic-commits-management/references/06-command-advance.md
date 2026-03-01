@@ -6,104 +6,77 @@ Command:
 stack advance <feature> --merged-branch <branch_name>
 ```
 
-## Intent
-
-Use when a specific slice PR has merged and stack must move forward safely.
-
-This keeps the review stack aligned with the latest epic head while preserving immutable merged history.
+Use after a slice PR merges and the stack must progress without rewriting merged
+history.
 
 ## Inputs
 
 - `<feature>`
-- merged branch name from epic spec (`--merged-branch`)
-- epic spec under `.stack/<feature>/epic.yml`
+- merged slice branch (`--merged-branch`)
+- `.stack/<feature>/epic.yml`
 
-## Detailed Procedure
+## Procedure
 
-### 1) Run mandatory preflight
+### 1) Preflight
 
-Use the shared preflight from `01-core-contract.md`.
+Run mandatory write preflight from `01-core-contract.md`.
 
-### 2) Resolve merge target slice
+### 2) Resolve merged boundary
 
-1. Find the target branch in `slices[].branch_name` from epic spec.
-2. If target is missing from epic spec, fail with explicit guidance.
-3. If target branch ref is missing, fail with explicit restore/bootstrap guidance.
+1. Find merged branch in spec order.
+2. Fail if branch is not in spec or ref is missing.
 
-### 3) Verify merged status
+### 3) Verify merge
 
-Primary check:
+Primary proof:
 
 - `git merge-base --is-ancestor <merged-branch> epic-<feature>`
 
-Fallback when squash merges are used:
+Fallback for squash merges:
 
-- confirm merged PR state via `gh` metadata
-- if PR proof exists, allow lock progression
+- verify merged PR state via `gh`
 
-If neither ancestry nor PR proof confirms merge, stop.
+If neither proof exists, stop.
 
-### 4) Lock merged range (ephemeral)
+### 4) Lock merged range
 
-1. Determine lock boundary by spec order up to merged branch.
-2. During this run, treat that range as locked.
-3. Never rewrite branches in the locked range.
+For this run, lock slices `1..N` where `N` is merged boundary. Locked slices are
+immutable.
 
-### 5) Rebuild unmerged slices
+### 5) Rebuild unlocked descendants
 
-Run publish logic for unlocked slices only (same algorithm as `stack publish`):
+Run publish algorithm for unlocked slices only (see
+`references/05-command-publish.md`).
 
-- base remains `epic-<feature>`
-- locked slices are immutable
-- unmerged slices are rebuilt from `epic..<work>`
+Rewrite scope is exactly `N+1..tip`.
 
-Scope rule:
+### 6) Validation gate
 
-- if merged boundary is slice `N`, only descendants `N+1..tip` can be rewritten
-- ancestors `1..N` remain locked/untouched
+Run repo validation command on each rewritten branch before push. Any failure
+blocks all pushes.
 
-### 6) Run branch validation gate before any push
+### 7) Reset work to tip
 
-1. Build list of rewritten branches for this advance run.
-2. For each rewritten branch, checkout branch ref and run the repo validation
-   command (at minimum typecheck/build command defined by repo guidance).
-3. If any branch fails validation:
-   - stop immediately
-   - do not push rewritten branches or work reset
-   - report failing branch and command output summary
-
-### 7) Recreate disposable work branch at new tip
-
-After rebuild:
+After successful rebuild:
 
 - `git branch -f <feature>/work <tip-slice>`
 - `git push --force-with-lease origin <feature>/work`
 
-### 8) Optional PR retargeting (Option A)
+### 8) Optional PR retarget
 
-Recommended after merge of branch `K`:
-
-- retarget next branch PR base to `epic-<feature>`
-- leave later PRs chained to immediate predecessor
-
-If using `gh`:
-
-- identify PR by head branch
-- edit base branch for the next PR only
+Optionally retarget the immediate next PR base to `epic-<feature>`.
 
 ## Guardrails
 
-- Never rewrite locked slice branches.
-- If merged branch is already in merged ancestry, treat as no-op and report.
-- If all slices are locked, `advance` should only align work branch to tip.
-- Do not write `.stack/<feature>/state.json`.
-- `tip == work` remains a validation check after advance, not a placement decision.
+- never rewrite locked slices
+- if all slices are locked, only align work to tip
+- do not write `.stack/<feature>/state.json`
 
-## Output Format
+## Output
 
-- Result (`pass` or `fail`)
-- Newly locked branches (for this run)
-- Rebuilt branches and head changes
-- Work branch reset result
-- Optional PR retarget actions
-- Next recommended command
+- result (`pass`/`fail`)
+- newly locked slices for this run
+- rebuilt branches and head changes
+- work reset status
+- optional PR retarget actions
+- next command

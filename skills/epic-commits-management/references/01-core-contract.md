@@ -1,149 +1,110 @@
 # Core Contract
 
-Load this file first. It defines placement policy, restack scope, and safety rules.
+Single policy source for placement, restacking, safety, and reporting.
 
-## Mental Model
-
-Operate by user intent, not by convenience branch state.
-
-- Identify where the user expects the fix to land.
-- Place the change there first.
-- Restack downstream branches as needed.
-- Validate invariants after placement.
-
-Do not skip to tip-only placement because it is easier.
-
-## Branch Roles
+## Branch Model
 
 - base: `epic-<feature>`
 - work: `<feature>/work`
-- slices: ordered `slices[].branch_name` from `.stack/<feature>/epic.yml`
+- slices: ordered `slices[].branch_name` in `.stack/<feature>/epic.yml`
 
-Shape:
+## Epic Spec Requirements
 
-```text
-epic-<feature>
-  <- <feature>/01-...
-  <- <feature>/02-...
-  <- <feature>/03-...
-  <- <feature>/04-...
-  <- <feature>/05-... (tip)
-```
+The spec file must contain:
 
-## Placement Policy (What Branch Gets the Fix)
+- `feature`, `base`, `work`
+- ordered `slices[]` entries with `branch_name`, `intent`
 
-Resolve target branch in this order:
+Validation rules:
 
-1. explicit user reference
-   - PR number
-   - branch name
-   - slice number (`04`, `05`)
-2. deterministic mapping from context
-   - PR head branch from `gh pr view`
-   - unique spec match from `.stack/<feature>/epic.yml`
-3. if unresolved, ask one direct question and pause writes
+- `branch_name` is unique
+- `branch_name` starts with `<feature>/`
+- `intent` is non-empty
 
-Hard rule:
+## Target Resolution
 
-- if user references PR/branch/slice, place fix on that branch first
+Resolve landing branch in this order:
 
-Pre-generation rule:
+1. explicit user target (PR/branch/slice)
+2. PR head branch (`gh pr view`)
+3. deterministic mapping from spec + changed paths
 
-- for `generate`/`regenerate` requests without explicit PR/branch/slice target,
-  emit a placement decision report before any rebase/restack writes
-- report must include:
-  1. commits being placed
-  2. evidence for mapping (path ownership/spec context)
-  3. chosen landing slice `N`
-  4. planned rewrite scope `N+1..tip`
-- if placement is ambiguous, ask one direct question and stop writes
+If unresolved, ask one direct question and stop writes.
 
-Example:
-
-- "Address PR 378" -> resolve PR 378 head -> slice `04` -> commit on `04`
-
-Exception:
-
-- if user explicitly says where to land the commit, skip inference and place as instructed
-- if request is PR-targeted, place on PR head branch directly
-
-## Restack Policy (What Moves After Fix)
-
-After target slice `N` changes:
-
-1. keep change on `N`
-2. rebuild only descendants `N+1..tip`
-3. do not rewrite ancestors `1..N-1`
-4. do not move fix directly to tip branch unless target is tip
-
-If `N` is tip, descendants set is empty.
-
-## Invariants (Validation, Not Placement)
-
-1. linear slice ancestry follows spec order
-2. `tree(tip) == tree(work)` after publish/restack
-3. locked slices are immutable
-4. force updates use `--force-with-lease`
-5. each rewritten slice is self-contained by passing the branch validation gate
-
-Important:
-
-- `tip == work` is checked after branch placement and restack
-- it does not choose the placement branch
-
-## Epic Spec
-
-Spec file: `.stack/<feature>/epic.yml`
-
-Required fields:
-
-- `feature`
-- `base`
-- `work`
-- `slices[]` with `branch_name` and `intent`
-
-Validation:
-
-- `branch_name` values are unique
-- order is explicit by list position
-- intent is non-empty and stable
-
-## Mandatory Preflight For Writes
-
-Run before review-fix, publish, advance, and clean:
-
-1. `git fetch --all --prune`
-2. clean tree (`git status --porcelain` empty)
-   - If tree is not clean and unrelated edits must be preserved, run stack
-     writes from a dedicated temporary worktree under the repo parent.
-   - Prefer repo-local paths like `<repo-parent>/<feature>-restack-<timestamp>`.
-   - Avoid `/tmp` unless user explicitly asks for it.
-3. non-detached HEAD (`git branch --show-current` non-empty)
-4. branch visibility for base, work, and target/rewritten slices
-5. backup refs for every branch pointer that may move
-6. enforce `--force-with-lease`
-
-### Backup Naming
-
-- `backup/<feature>/<timestamp>-<branch-slug>`
-- timestamp: `YYYYMMDD-HHMMSS`
-- slug: replace `/` with `--`
-
-## Ambiguity Rule
-
-When target cannot be resolved from the prompt, ask exactly one direct question.
-
-Use this pattern:
+Question template:
 
 "I cannot resolve the landing slice from context. Should this fix land on `04` or `05`?"
 
-Do not ask multiple questions. Do not write branches before answer.
+## Generate/Regenerate Placement Report
 
-## Reporting Contract
+For `generate`/`regenerate` without an explicit target, emit a placement report
+before any write:
+
+1. commits being placed
+2. mapping evidence
+3. chosen landing slice `N`
+4. rewrite scope `N+1..tip`
+
+If placement is ambiguous, ask once and stop writes.
+
+## Restack Scope
+
+After changing slice `N`:
+
+- keep the fix on `N`
+- rewrite only descendants `N+1..tip`
+- never rewrite ancestors `1..N-1`
+
+If `N` is tip, descendants are empty.
+
+## Locked Slices
+
+A slice is locked if merged into base:
+
+`git merge-base --is-ancestor <slice-branch> epic-<feature>`
+
+Locked slices are immutable.
+
+## Mandatory Write Preflight
+
+Run before `review-fixes`, `publish`, `advance`, and `clean`:
+
+1. refresh refs (`git fetch origin --prune`; use `--all` only when needed)
+2. ensure clean tree (`git status --porcelain` empty)
+3. ensure non-detached HEAD
+4. ensure base/work/target branch visibility
+5. create backup refs for every branch pointer that may move
+
+Dirty-tree policy:
+
+- never discard user edits
+- if edits must be preserved, run writes from a temporary worktree under repo
+  parent
+- avoid `/tmp` unless user explicitly requests it
+
+Backup naming:
+
+`backup/<feature>/<YYYYMMDD-HHMMSS>-<branch-slug>` (`/` becomes `--`)
+
+## Push Safety
+
+- never use plain `--force`
+- use `--force-with-lease` for rewritten branches only
+
+## Post-Write Invariants
+
+1. slice ancestry follows spec order
+2. `tree(tip) == tree(work)` after publish/restack
+3. locked slices are unchanged
+4. every rewritten branch passes repo validation gate
+
+`tip == work` is validation only, never placement policy.
+
+## Standard Output
 
 Always report:
 
-1. resolved target branch (and how it was resolved)
-2. branch updates (target, descendants, untouched)
-3. invariant checks (`tip == work`, locked integrity)
-4. one next action
+1. resolved target and evidence
+2. changed branches (target, descendants, untouched)
+3. invariant results
+4. one next command

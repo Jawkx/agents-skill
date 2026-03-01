@@ -4,10 +4,6 @@ Use this workflow when user asks to address review comments, PR feedback, or "fi
 
 This is the default write workflow for stacked reviews.
 
-## Goal
-
-Land each fix on the intended slice branch first, then restack descendants only.
-
 ## Inputs
 
 - `feature`
@@ -31,21 +27,16 @@ Resolve in order:
 
 Do not continue with writes until target is known.
 
-### 2.5) Placement report before writes (inferred target only)
+### 3) Optional placement report (inferred target only)
 
-When target was inferred (not explicitly provided by user and not PR-head resolved),
-print a short placement report before committing:
+If target is inferred (not explicit and not PR-head resolved), print a short
+report before writing:
 
 1. why this slice was chosen
 2. which commit/change is being placed
 3. descendants that will be restacked (`N+1..tip`)
 
-Skip this report when:
-
-- user explicitly names PR/branch/slice, or
-- target comes from PR head branch mapping
-
-### 3) Apply fix on target branch `N`
+### 4) Apply fix on target branch `N`
 
 1. switch to target branch
 2. make code change for the review comment
@@ -55,7 +46,7 @@ Hard rule:
 
 - do not place this fix directly on tip when target is non-tip
 
-### 4) Restack descendants only
+### 5) Restack descendants only
 
 Given target index `N` in ordered slices:
 
@@ -65,13 +56,13 @@ Given target index `N` in ordered slices:
 
 Use publish mechanics from `05-command-publish.md` for rebuilt descendants.
 
-### 5) Validate
+### 6) Validate
 
 1. target branch contains fix
 2. descendants are rebased/restacked on new target head
 3. `tip == work` holds after restack
 
-### 6) Push safely
+### 7) Push safely
 
 - push changed branches with `--force-with-lease`
 - never plain `--force`
@@ -85,57 +76,6 @@ Preferred wording:
 "I cannot resolve the landing slice from context. Should this fix land on `04` or `05`?"
 
 No writes before answer.
-
-## Concrete Examples (04/05)
-
-### Example A: PR-targeted fix
-
-Context:
-
-- Slices: `01 -> 02 -> 03 -> 04 -> 05`
-- User: "Address comments on PR 378"
-- PR 378 head branch resolves to slice `04`
-
-Required behavior:
-
-1. commit fix on `04`
-2. restack only `05`
-3. do not skip `04` and commit directly on `05`
-
-### Example B: Direct slice mention
-
-Context:
-
-- User: "Please fix review note on branch 04"
-
-Required behavior:
-
-1. commit on `04`
-2. restack `05` only
-
-### Example C: Tip-targeted fix
-
-Context:
-
-- User: "Fix typo in slice 05"
-
-Required behavior:
-
-1. commit on `05`
-2. restack descendants set is empty
-3. still validate `tip == work`
-
-### Example D: Ambiguous request
-
-Context:
-
-- User: "Address latest feedback"
-- No PR/branch/slice reference and no deterministic mapping
-
-Required behavior:
-
-1. ask one direct question (`04` or `05`)
-2. do not write until answer
 
 ## Output Contract
 

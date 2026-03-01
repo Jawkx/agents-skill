@@ -6,75 +6,37 @@ Command:
 stack clean <feature>
 ```
 
-## Goal
-
-Finalize an epic workflow after slices are merged: remove disposable work artifacts and optionally remove generated slice branches.
+Finalize an epic after slices are merged by removing disposable stack branches.
 
 ## Preconditions
 
-- write preflight passes
-- all intended slices are merged into `epic-<feature>`
-- no remaining diff from work to epic
+- write preflight passes (see `01-core-contract.md`)
+- intended slices are merged into `epic-<feature>`
+- no diff between `epic-<feature>` and `<feature>/work`
 
-## Detailed Procedure
+## Procedure
 
-### 1) Run mandatory preflight
-
-Use shared preflight from `01-core-contract.md`.
-
-### 2) Verify completion state
-
-1. Confirm work branch exists (local or remote).
-2. Confirm no pending diff:
+1. Verify completion state.
+   - confirm work branch exists (local or remote)
    - `git diff --quiet epic-<feature>..<feature>/work`
-3. If diff exists, stop and recommend `publish` or `advance` first.
+2. If diff exists, stop and recommend `publish` or `advance` first.
+3. Backup refs for branches that may be deleted.
+4. Delete work branch (remote then local):
+   - `git push origin --delete <feature>/work`
+   - `git branch -D <feature>/work`
+5. Optional: delete slice branches per team policy (conservative or aggressive).
+6. Optional: keep or discard `.stack/<feature>/epic.yml` per team preference.
+7. Do not write `.stack/<feature>/state.json`.
 
-### 3) Backup branch refs before deletion
+## Output
 
-Create backups for:
-
-- `<feature>/work`
-- slice branches from epic spec that may be deleted
-
-### 4) Delete work branch
-
-Remote first, then local:
-
-- `git push origin --delete <feature>/work`
-- `git branch -D <feature>/work`
-
-If remote delete fails because branch is absent, continue and report as already removed.
-
-### 5) Optional slice branch cleanup
-
-Respect repo policy:
-
-- conservative: keep slice branches for audit window
-- aggressive: delete all slice branches once epic is merged
-
-Deletion commands:
-
-- `git push origin --delete <slice branch_name>`
-- `git branch -D <slice branch_name>`
-
-### 6) Spec cleanup
-
-`epic.yml` is disposable with `<feature>/work`.
-
-- keep it if your team wants a reusable spec template
-- otherwise let it disappear with work branch cleanup
-
-Do not write or maintain `.stack/<feature>/state.json` during clean.
-
-## Output Format
-
-- Result (`pass` or `fail`)
-- Work branch deletion status
-- Slice cleanup status (deleted/kept)
-- Epic spec cleanup status
-- Any residual manual tasks
+- result (`pass`/`fail`)
+- work branch deletion status
+- slice cleanup status
+- spec cleanup status
+- residual manual actions
 
 ## Failure Handling
 
-- If epic/work diff is non-empty, abort clean and send explicit next command.
-- If branch deletion is partially successful, report exact branches requiring manual follow-up.
+- non-empty epic/work diff -> abort clean with explicit next command
+- partial deletion -> report exact branches needing manual follow-up

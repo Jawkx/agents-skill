@@ -6,168 +6,116 @@ Command:
 stack publish <feature>
 ```
 
-## Intent
-
-Use this when user explicitly wants full stack publish/rebuild from `<feature>/work`.
-
-Do not use this workflow as a shortcut for PR-targeted fixes. For review comments, use `04-workflow-review-fixes.md`.
+Use when user explicitly wants full stack publish/rebuild from `<feature>/work`.
+Do not use this as a shortcut for PR-targeted review fixes.
 
 ## Inputs
 
 - base: `epic-<feature>`
 - work: `<feature>/work`
-- epic spec: `.stack/<feature>/epic.yml`
+- spec: `.stack/<feature>/epic.yml`
 
-## Detailed Procedure
+## Procedure
 
-### 1) Run mandatory preflight
+### 1) Preflight
 
-Run the shared preflight from `01-core-contract.md`.
+Run mandatory write preflight from `01-core-contract.md`.
 
-If preflight fails, stop.
+### 2) Resolve slices and lock set
 
-### 2) Load epic spec and resolve lock set
-
-1. Parse epic spec slices in listed order (`slices[].branch_name`).
-2. For each existing slice branch, detect merged status:
+1. Read ordered slices from spec.
+2. Mark locked slices merged into base:
    - `git merge-base --is-ancestor <slice-branch> epic-<feature>`
-3. Treat merged slices as locked.
-4. Never rewrite locked slices.
+3. Never rewrite locked slices.
 
-### 3) Emit pre-generation placement report (implicit mode only)
+### 3) Placement report (implicit generate/regenerate mode only)
 
-Run this only when user did not explicitly specify PR/branch/slice target.
+Run only when the request is generate/regenerate without explicit PR/branch/slice
+target.
 
-1. Identify commit(s) present on `<feature>/work` but not on tip slice.
-2. Infer landing slice candidate(s) from path ownership and epic spec intent.
-3. Print a placement report before writes:
-   - commit(s) being placed
-   - mapping evidence
-   - chosen landing slice `N`
-   - descendants to rewrite `N+1..tip`
-4. If mapping is ambiguous, stop and ask one direct target question.
+Report before writes:
 
-Skip this report when:
+1. commits present on work but not tip
+2. mapping evidence
+3. chosen landing slice `N`
+4. rewrite scope `N+1..tip`
 
-- user explicitly tells where commit should land, or
-- request is PR-targeted (place on PR head branch)
+If mapping is ambiguous, ask one direct question and stop.
 
-### 4) Resolve slice scopes for this publish
+### 4) Resolve ownership for this run
 
-Epic spec does not define `paths`, so ownership is runtime-resolved.
+Spec has no path map, so resolve ownership at runtime from:
 
-1. Get diff entries from `epic..<work>`:
-   - `git diff --name-status --no-renames epic-<feature>..<feature>/work`
-2. Infer ownership from existing slice history and slice `intent`.
-3. Fail on:
-   - unassigned path
-   - ambiguous path
+- `git diff --name-status --no-renames epic-<feature>..<feature>/work`
+- existing slice history
+- slice intent text
 
-Include actionable suggestions in the failure report.
+Fail on unassigned or ambiguous paths with actionable guidance.
 
-### 5) Prepare rewrite backups
+### 5) Create backups
 
-Create backup refs for each branch that may move:
+Create backup refs for all branch pointers that may move:
 
-- all unlocked slice branches that already exist
+- each unlocked slice that will be rewritten
 - `<feature>/work` if it will be repointed
 
-### 6) Build stack on a temp branch
+### 6) Rebuild on a temp branch
 
-1. Create temp build branch from base:
-   - `git switch -c tmp/epic-commits-management/<feature>/<timestamp> epic-<feature>`
-2. Iterate slices in spec order.
+1. Create temp branch from base.
+2. Iterate slices in spec order:
+   - locked slice: skip
+   - unlocked slice:
+     - apply owned paths from work
+       - existing path: `git checkout <feature>/work -- <path>`
+       - deleted path: `git rm --ignore-unmatch -- <path>`
+     - `git add -A`
+     - commit if staged changes exist
+     - `git branch -f <slice-branch> HEAD`
 
-For each slice:
+Empty slices are allowed; keep pointer at current HEAD.
 
-- If locked:
-
-  - do not modify branch
-  - continue
-
-- If unlocked:
-  1. Apply assigned paths from work to current temp HEAD.
-     - existing-at-work paths: `git checkout <feature>/work -- <path>`
-     - deleted-at-work paths: `git rm --ignore-unmatch -- <path>`
-  2. Stage: `git add -A`
-  3. If there are staged changes:
-     - `git commit -m "<branch_name>: <intent>"`
-  4. If no staged changes:
-     - keep current HEAD and mark slice as empty in report output
-  5. Point slice branch to current HEAD:
-     - `git branch -f <branch_name> HEAD`
-
-### 7) Validate final invariants
+### 7) Validate invariants
 
 1. Resolve tip as last spec slice.
-2. Verify tip equals work:
+2. Verify `tip == work`:
    - `git diff --quiet <tip-slice>..<feature>/work`
-3. If mismatch, stop and report file-level divergence.
+3. Stop and report divergence if mismatch.
 
-Interpretation rule:
+### 8) Branch validation gate
 
-- `tip == work` here is a post-publish validation.
-- It does not define where future review fixes should land.
+Before any push, run repo validation command on each rewritten branch (at minimum
+the repo's required typecheck/build/lint gate).
 
-### 8) Run branch validation gate before any push
+If any rewritten branch fails:
 
-1. Build list of rewritten branches in this run (target + rewritten descendants).
-2. For each rewritten branch, checkout branch ref and run the repo validation
-   command (at minimum typecheck/build command defined by repo guidance).
-3. If any branch fails validation:
-   - stop immediately
-   - do not push rewritten branches
-   - report failing branch and command output summary
+- stop immediately
+- do not push rewritten branches
+- report failing branch and command summary
 
-Goal:
+### 9) Push rewritten branches
 
-- prevent publishing a stack where an intermediate slice compiles only because
-  later slices add missing dependencies.
+Push changed unlocked slice branches only:
 
-### 9) Do not write persistent state
+- `git push --force-with-lease origin <slice-branch>`
 
-- Do not create or update `.stack/<feature>/state.json`.
-- Report runtime ownership/empty slices directly in command output.
+Never force-push locked slices.
 
-### 10) Push rewritten branches
+### 10) Optional work alignment
 
-Push only unlocked slice branches that changed:
-
-- `git push --force-with-lease origin <branch_name>`
-
-Never push locked slices with force updates.
-
-### 11) Optional work realignment
-
-If policy is to keep work pinned to tip:
+If work should track tip:
 
 - `git branch -f <feature>/work <tip-slice>`
 - `git push --force-with-lease origin <feature>/work`
 
-## Edge Cases
+### 11) No persistent state file
 
-### Empty slices
+Do not create or update `.stack/<feature>/state.json`.
 
-- Keep branch at current HEAD.
-- Preserve slice order; do not auto-delete slice entries.
+## Output
 
-### Spec changed after merges
-
-- Locked slices remain immutable regardless of spec edits.
-- Apply spec changes only to unlocked slices.
-
-### Publish invoked after a targeted fix on slice `N`
-
-- Keep target fix on `N`.
-- Rebuild descendants `N+1..tip`.
-- Never relocate fix to tip-only branch.
-
-## Output Format
-
-- Result (`pass` or `fail`)
-- Rebuilt slices (with old/new heads)
-- Placement note (full publish vs targeted-restack mode)
-- Locked slices untouched
-- Ownership issues (if any)
-- Tip equality status (validation)
-- Next recommended command
+- result (`pass`/`fail`)
+- rebuilt branches (old/new heads)
+- locked branches left untouched
+- ownership issues (if any)
+- `tip == work` status
+- next command
