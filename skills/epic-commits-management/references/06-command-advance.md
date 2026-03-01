@@ -62,14 +62,24 @@ Scope rule:
 - if merged boundary is slice `N`, only descendants `N+1..tip` can be rewritten
 - ancestors `1..N` remain locked/untouched
 
-### 6) Recreate disposable work branch at new tip
+### 6) Run branch validation gate before any push
+
+1. Build list of rewritten branches for this advance run.
+2. For each rewritten branch, checkout branch ref and run the repo validation
+   command (at minimum typecheck/build command defined by repo guidance).
+3. If any branch fails validation:
+   - stop immediately
+   - do not push rewritten branches or work reset
+   - report failing branch and command output summary
+
+### 7) Recreate disposable work branch at new tip
 
 After rebuild:
 
 - `git branch -f <feature>/work <tip-slice>`
 - `git push --force-with-lease origin <feature>/work`
 
-### 7) Optional PR retargeting (Option A)
+### 8) Optional PR retargeting (Option A)
 
 Recommended after merge of branch `K`:
 

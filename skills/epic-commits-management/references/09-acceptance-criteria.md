@@ -66,3 +66,45 @@ Must be true:
 1. assistant asks one direct question
 2. no branch writes occur before answer
 3. question asks for concrete target choice (example: `04` vs `05`)
+
+### 5) Publish/advance validates rewritten slices before push
+
+Given:
+
+- a run rewrites one or more slice branches
+
+Must be true:
+
+1. each rewritten branch runs repo validation gate before push
+2. failure in any branch blocks all pushes for that run
+3. report identifies failing branch and failing command
+
+### 6) Dirty-tree handling preserves user edits
+
+Given:
+
+- preflight detects non-clean tree with unrelated local edits
+
+Must be true:
+
+1. workflow does not reset or discard user edits
+2. writes run from a dedicated temporary worktree under repo parent by default
+3. `/tmp` is used only when user explicitly requests it
+
+### 7) Regenerate requests publish placement decision before restack
+
+Given:
+
+- user asks to `generate`/`regenerate` stack
+- request does not explicitly name PR/branch/slice target
+
+Must be true:
+
+1. assistant reports chosen landing slice before any rebase/restack writes
+2. report includes evidence used for placement decision
+3. report includes planned descendant rewrite scope (`N+1..tip`)
+
+Exception behavior:
+
+- explicit user target: place exactly where instructed
+- PR-targeted request: place on PR head branch

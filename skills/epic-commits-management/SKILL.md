@@ -51,6 +51,20 @@ If user references a PR/branch/slice, that is the landing target.
 
 If target cannot be resolved from context, ask exactly one direct question and block writes until answered.
 
+## Pre-generation placement report
+
+For `generate`/`regenerate` requests, resolve landing slice before any restack/rebase.
+
+- If user explicitly names PR/branch/slice, place commit there directly.
+- If request targets a PR, resolve PR head branch and place commit there.
+- If neither is provided, produce a short placement report before writes:
+  1. candidate commits being placed
+  2. evidence used to map to slice (paths/ownership/spec context)
+  3. chosen landing branch/slice
+  4. descendants that will be restacked (`N+1..tip`)
+
+If placement is ambiguous, ask one direct target question and do not write branches.
+
 ## Restack Policy (Explicit)
 
 After changing target slice `N`:

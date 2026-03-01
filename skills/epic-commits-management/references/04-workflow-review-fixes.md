@@ -31,6 +31,20 @@ Resolve in order:
 
 Do not continue with writes until target is known.
 
+### 2.5) Placement report before writes (inferred target only)
+
+When target was inferred (not explicitly provided by user and not PR-head resolved),
+print a short placement report before committing:
+
+1. why this slice was chosen
+2. which commit/change is being placed
+3. descendants that will be restacked (`N+1..tip`)
+
+Skip this report when:
+
+- user explicitly names PR/branch/slice, or
+- target comes from PR head branch mapping
+
 ### 3) Apply fix on target branch `N`
 
 1. switch to target branch

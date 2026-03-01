@@ -47,9 +47,25 @@ Hard rule:
 
 - if user references PR/branch/slice, place fix on that branch first
 
+Pre-generation rule:
+
+- for `generate`/`regenerate` requests without explicit PR/branch/slice target,
+  emit a placement decision report before any rebase/restack writes
+- report must include:
+  1. commits being placed
+  2. evidence for mapping (path ownership/spec context)
+  3. chosen landing slice `N`
+  4. planned rewrite scope `N+1..tip`
+- if placement is ambiguous, ask one direct question and stop writes
+
 Example:
 
 - "Address PR 378" -> resolve PR 378 head -> slice `04` -> commit on `04`
+
+Exception:
+
+- if user explicitly says where to land the commit, skip inference and place as instructed
+- if request is PR-targeted, place on PR head branch directly
 
 ## Restack Policy (What Moves After Fix)
 
@@ -68,6 +84,7 @@ If `N` is tip, descendants set is empty.
 2. `tree(tip) == tree(work)` after publish/restack
 3. locked slices are immutable
 4. force updates use `--force-with-lease`
+5. each rewritten slice is self-contained by passing the branch validation gate
 
 Important:
 
@@ -97,6 +114,10 @@ Run before review-fix, publish, advance, and clean:
 
 1. `git fetch --all --prune`
 2. clean tree (`git status --porcelain` empty)
+   - If tree is not clean and unrelated edits must be preserved, run stack
+     writes from a dedicated temporary worktree under the repo parent.
+   - Prefer repo-local paths like `<repo-parent>/<feature>-restack-<timestamp>`.
+   - Avoid `/tmp` unless user explicitly asks for it.
 3. non-detached HEAD (`git branch --show-current` non-empty)
 4. branch visibility for base, work, and target/rewritten slices
 5. backup refs for every branch pointer that may move

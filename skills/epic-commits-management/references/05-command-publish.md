@@ -34,7 +34,25 @@ If preflight fails, stop.
 3. Treat merged slices as locked.
 4. Never rewrite locked slices.
 
-### 3) Resolve slice scopes for this publish
+### 3) Emit pre-generation placement report (implicit mode only)
+
+Run this only when user did not explicitly specify PR/branch/slice target.
+
+1. Identify commit(s) present on `<feature>/work` but not on tip slice.
+2. Infer landing slice candidate(s) from path ownership and epic spec intent.
+3. Print a placement report before writes:
+   - commit(s) being placed
+   - mapping evidence
+   - chosen landing slice `N`
+   - descendants to rewrite `N+1..tip`
+4. If mapping is ambiguous, stop and ask one direct target question.
+
+Skip this report when:
+
+- user explicitly tells where commit should land, or
+- request is PR-targeted (place on PR head branch)
+
+### 4) Resolve slice scopes for this publish
 
 Epic spec does not define `paths`, so ownership is runtime-resolved.
 
@@ -47,14 +65,14 @@ Epic spec does not define `paths`, so ownership is runtime-resolved.
 
 Include actionable suggestions in the failure report.
 
-### 4) Prepare rewrite backups
+### 5) Prepare rewrite backups
 
 Create backup refs for each branch that may move:
 
 - all unlocked slice branches that already exist
 - `<feature>/work` if it will be repointed
 
-### 5) Build stack on a temp branch
+### 6) Build stack on a temp branch
 
 1. Create temp build branch from base:
    - `git switch -c tmp/epic-commits-management/<feature>/<timestamp> epic-<feature>`
@@ -79,7 +97,7 @@ For each slice:
   5. Point slice branch to current HEAD:
      - `git branch -f <branch_name> HEAD`
 
-### 6) Validate final invariants
+### 7) Validate final invariants
 
 1. Resolve tip as last spec slice.
 2. Verify tip equals work:
@@ -91,12 +109,27 @@ Interpretation rule:
 - `tip == work` here is a post-publish validation.
 - It does not define where future review fixes should land.
 
-### 7) Do not write persistent state
+### 8) Run branch validation gate before any push
+
+1. Build list of rewritten branches in this run (target + rewritten descendants).
+2. For each rewritten branch, checkout branch ref and run the repo validation
+   command (at minimum typecheck/build command defined by repo guidance).
+3. If any branch fails validation:
+   - stop immediately
+   - do not push rewritten branches
+   - report failing branch and command output summary
+
+Goal:
+
+- prevent publishing a stack where an intermediate slice compiles only because
+  later slices add missing dependencies.
+
+### 9) Do not write persistent state
 
 - Do not create or update `.stack/<feature>/state.json`.
 - Report runtime ownership/empty slices directly in command output.
 
-### 8) Push rewritten branches
+### 10) Push rewritten branches
 
 Push only unlocked slice branches that changed:
 
@@ -104,7 +137,7 @@ Push only unlocked slice branches that changed:
 
 Never push locked slices with force updates.
 
-### 9) Optional work realignment
+### 11) Optional work realignment
 
 If policy is to keep work pinned to tip:
 
