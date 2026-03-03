@@ -1,10 +1,8 @@
 # Workflow: Diagnose Stack State
 
-Command:
+Operation: `status`
 
-```bash
-stack status <feature>
-```
+Optional CLI alias: `stack status <feature>`
 
 Read-only health and placement preview.
 
@@ -36,4 +34,4 @@ Read-only health and placement preview.
 - target resolution (or ambiguity)
 - rewrite preview
 - invariant summary (`tip == work`, lock integrity)
-- next command (`publish`, `review-fixes`, or recovery)
+- next step (`publish`, `review-fixes`, or recovery)

@@ -36,36 +36,44 @@ report before writing:
 2. which commit/change is being placed
 3. descendants that will be restacked (`N+1..tip`)
 
-### 4) Apply fix on target branch `N`
+### 4) Apply fix on `<feature>/work` first
 
-1. switch to target branch
+1. switch to `<feature>/work`
 2. make code change for the review comment
-3. commit on target branch
+3. run typecheck on work branch (`yarn tsc` unless repo override)
+4. commit on work branch
 
 Hard rule:
 
-- do not place this fix directly on tip when target is non-tip
+- even when target is non-tip, author the fix on work first
+- target branch determines final landing slice during regeneration
 
-### 5) Restack descendants only
+### 5) Regenerate stack and place fix on target `N`
 
 Given target index `N` in ordered slices:
 
+- regenerate from work so the fix lands on slice `N`
 - rebuild `N+1..tip`
 - do not rewrite `1..N-1`
 - keep locked slices immutable
+- align `<feature>/work` to regenerated tip
 
-Use publish mechanics from `05-command-publish.md` for rebuilt descendants.
+Use publish mechanics from `05-publish.md` for regeneration and branch rewrites.
 
 ### 6) Validate
 
-1. target branch contains fix
+1. target branch contains fix after regeneration
 2. descendants are rebased/restacked on new target head
 3. `tip == work` holds after restack
+4. cross-branch typecheck passes on target + all rewritten descendants (+ work
+   when moved/repointed)
 
 ### 7) Push safely
 
-- push changed branches with `--force-with-lease`
+- push fast-forward branches normally
+- push rewritten branches with `--force-with-lease`
 - never plain `--force`
+- do not push if any changed branch fails `yarn tsc`
 
 ## Ambiguity Handling
 
@@ -82,7 +90,7 @@ No writes before answer.
 Return:
 
 1. resolved target and evidence (PR -> branch mapping if used)
-2. fix commit location
+2. fix commit on work and final landing slice
 3. descendants restacked
 4. `tip == work` validation result
 5. one next step

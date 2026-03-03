@@ -1,6 +1,6 @@
 # Recovery Reference
 
-Use this only when a write command fails, placement is wrong, or rollback is
+Use this only when a write workflow fails, placement is wrong, or rollback is
 required.
 
 ## Immediate Actions
@@ -23,7 +23,7 @@ When branch pointers must be restored:
 3. Push safely:
    - `git push --force-with-lease origin <branch>`
 4. Re-run diagnosis:
-   - `stack status <feature>`
+   - status workflow (`references/02-status.md`)
 
 ## Failure Matrix
 
@@ -57,13 +57,13 @@ When branch pointers must be restored:
 
 - restore from backup
 - push restored pointer with lease
-- re-run `stack status`
+- re-run status workflow
 
 ### Wrong base used in publish
 
 - restore rewritten branches from backups
 - verify base
-- rerun `stack publish <feature>`
+- rerun publish workflow (`references/05-publish.md`)
 
 ### Squash merge breaks ancestry check in advance
 
@@ -88,7 +88,7 @@ Use hard reset only with explicit user approval.
 
 ## Post-Recovery Checks
 
-1. run `stack status <feature>`
+1. run status workflow (`references/02-status.md`)
 2. verify locked slices remain intact
 3. verify or explicitly explain `tip == work`
-4. propose one next command
+4. propose one next step

@@ -1,13 +1,12 @@
 # Workflow: Publish Stack From Work
 
-Command:
+Operation: `publish`
 
-```bash
-stack publish <feature>
-```
+Optional CLI alias: `stack publish <feature>`
 
 Use when user explicitly wants full stack publish/rebuild from `<feature>/work`.
-Do not use this as a shortcut for PR-targeted review fixes.
+For PR-targeted review fixes, use `04-review-fixes.md`, which may invoke these
+publish mechanics after committing on work.
 
 ## Inputs
 
@@ -86,6 +85,11 @@ Empty slices are allowed; keep pointer at current HEAD.
 Before any push, run repo validation command on each rewritten branch (at minimum
 the repo's required typecheck/build/lint gate).
 
+Typecheck is mandatory for each rewritten branch:
+
+- run `yarn tsc` on every rewritten slice branch
+- include `<feature>/work` if it is repointed/rebased in this run
+
 If any rewritten branch fails:
 
 - stop immediately
@@ -118,4 +122,4 @@ Do not create or update `.stack/<feature>/state.json`.
 - locked branches left untouched
 - ownership issues (if any)
 - `tip == work` status
-- next command
+- next step

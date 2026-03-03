@@ -1,10 +1,8 @@
-# Command Reference: stack clean
+# Workflow: Clean Stack
 
-Command:
+Operation: `clean`
 
-```bash
-stack clean <feature>
-```
+Optional CLI alias: `stack clean <feature>`
 
 Finalize an epic after slices are merged by removing disposable stack branches.
 
@@ -38,5 +36,5 @@ Finalize an epic after slices are merged by removing disposable stack branches.
 
 ## Failure Handling
 
-- non-empty epic/work diff -> abort clean with explicit next command
+- non-empty epic/work diff -> abort clean with explicit next step
 - partial deletion -> report exact branches needing manual follow-up

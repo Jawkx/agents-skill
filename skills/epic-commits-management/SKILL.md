@@ -11,13 +11,13 @@ Use this skill for stacked branch workflows (`epic-*`, `<feature>/work`, `<featu
 
 1. Always read `references/01-core-contract.md`.
 2. Read one workflow by intent:
-   - status: `references/02-command-status.md`
-   - plan: `references/03-command-plan.md`
-   - review fixes: `references/04-workflow-review-fixes.md`
-   - publish/regenerate: `references/05-command-publish.md`
-   - post-merge advance: `references/06-command-advance.md`
-   - cleanup: `references/07-command-clean.md`
-3. If a command fails, read `references/10-recovery.md`.
+   - status: `references/02-status.md`
+   - plan: `references/03-plan.md`
+   - review fixes: `references/04-review-fixes.md`
+   - publish/regenerate: `references/05-publish.md`
+   - post-merge advance: `references/06-advance.md`
+   - cleanup: `references/07-clean.md`
+3. If a workflow fails, read `references/10-recovery.md`.
 
 ## Intent Router
 
@@ -31,10 +31,12 @@ Use this skill for stacked branch workflows (`epic-*`, `<feature>/work`, `<featu
 ## Hard Rules
 
 - Resolve target slice first, then write.
-- Apply fixes on target slice; restack descendants only.
+- For review fixes, commit on `<feature>/work` first, then regenerate.
+- Ensure regeneration lands the fix on the resolved target slice and restacks descendants only.
 - `tip == work` is validation, not placement.
 - Never rewrite locked slices.
 - Rewrites push with `--force-with-lease` only.
+- Run `yarn tsc` on all changed/restacked branches before finalizing.
 
 ## Runtime Report
 

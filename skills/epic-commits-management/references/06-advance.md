@@ -1,10 +1,8 @@
 # Workflow: Advance After Merge
 
-Command:
+Operation: `advance`
 
-```bash
-stack advance <feature> --merged-branch <branch_name>
-```
+Optional CLI alias: `stack advance <feature> --merged-branch <branch_name>`
 
 Use after a slice PR merges and the stack must progress without rewriting merged
 history.
@@ -46,7 +44,7 @@ immutable.
 ### 5) Rebuild unlocked descendants
 
 Run publish algorithm for unlocked slices only (see
-`references/05-command-publish.md`).
+`references/05-publish.md`).
 
 Rewrite scope is exactly `N+1..tip`.
 
@@ -54,6 +52,10 @@ Rewrite scope is exactly `N+1..tip`.
 
 Run repo validation command on each rewritten branch before push. Any failure
 blocks all pushes.
+
+Minimum requirement for this skill:
+
+- run `yarn tsc` on each rewritten branch (and on work if moved)
 
 ### 7) Reset work to tip
 
@@ -79,4 +81,4 @@ Optionally retarget the immediate next PR base to `epic-<feature>`.
 - rebuilt branches and head changes
 - work reset status
 - optional PR retarget actions
-- next command
+- next step

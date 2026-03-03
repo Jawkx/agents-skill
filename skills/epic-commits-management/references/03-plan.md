@@ -1,10 +1,8 @@
 # Workflow: Plan Slice Contract
 
-Command:
+Operation: `plan`
 
-```bash
-stack plan <feature>
-```
+Optional CLI alias: `stack plan <feature>`
 
 Define or revise `.stack/<feature>/epic.yml`. This workflow never rewrites
 branches.
@@ -37,6 +35,6 @@ branches.
 
 ## Handoff
 
-- If valid: `stack publish <feature>`
-- If user asked for PR feedback fixes instead: use
-  `references/04-workflow-review-fixes.md`
+- If valid: run `references/05-publish.md`
+- If user asked for PR feedback fixes instead: run
+  `references/04-review-fixes.md`
