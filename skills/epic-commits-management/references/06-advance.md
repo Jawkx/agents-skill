@@ -57,11 +57,13 @@ Minimum requirement for this skill:
 
 - run `yarn tsc` on each rewritten branch (and on work if moved)
 
-### 7) Reset work to tip
+### 7) Reset work to tip + work-only spec
 
 After successful rebuild:
 
 - `git branch -f <feature>/work <tip-slice>`
+- restore `.stack/<feature>/epic.yml` on `<feature>/work`
+- commit restoration if needed
 - `git push --force-with-lease origin <feature>/work`
 
 ### 8) Optional PR retarget

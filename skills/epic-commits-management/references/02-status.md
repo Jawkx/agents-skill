@@ -13,7 +13,7 @@ Read-only health and placement preview.
 3. Resolve ordered slices from `.stack/<feature>/epic.yml`.
    - Fallback only if spec is missing: discover `<feature>/*` branches.
 4. Resolve tip slice (last slice).
-5. Check `tip == work` when tip exists.
+5. Check tip/work metadata-only diff when tip exists.
 6. Detect locked slices via merge ancestry into base.
 7. Show `git diff --stat epic-<feature>..<feature>/work`.
 8. If user gives PR/branch/slice hint, resolve target branch.
@@ -33,5 +33,5 @@ Read-only health and placement preview.
 - lock state
 - target resolution (or ambiguity)
 - rewrite preview
-- invariant summary (`tip == work`, lock integrity)
+- invariant summary (tip/work metadata-only diff, lock integrity)
 - next step (`publish`, `review-fixes`, or recovery)

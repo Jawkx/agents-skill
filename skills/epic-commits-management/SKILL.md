@@ -33,7 +33,7 @@ Use this skill for stacked branch workflows (`epic-*`, `<feature>/work`, `<featu
 - Resolve target slice first, then write.
 - For review fixes, commit on `<feature>/work` first, then regenerate.
 - Ensure regeneration lands the fix on the resolved target slice and restacks descendants only.
-- `tip == work` is validation, not placement.
+- tip/work metadata-only diff is validation, not placement.
 - Never rewrite locked slices.
 - Rewrites push with `--force-with-lease` only.
 - Run `yarn tsc` on all changed/restacked branches before finalizing.
@@ -44,5 +44,5 @@ Always return:
 
 1. target resolution (and evidence),
 2. branches changed (target vs descendants),
-3. invariant checks (`tip == work`, lock integrity),
+3. invariant checks (tip/work metadata-only diff, lock integrity),
 4. one next action.

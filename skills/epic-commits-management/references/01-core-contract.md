@@ -21,6 +21,14 @@ Validation rules:
 - `branch_name` starts with `<feature>/`
 - `intent` is non-empty
 
+## Work-Only Stack Spec File
+
+- `.stack/<feature>/epic.yml` is work-only metadata.
+- It must exist on `<feature>/work`.
+- It must not be committed on slice branches.
+- Post-write validation requires `git diff --name-only <tip-slice>..<feature>/work`
+  to contain exactly `.stack/<feature>/epic.yml`.
+
 ## Target Resolution
 
 Resolve landing branch in this order:
@@ -127,12 +135,12 @@ Failure policy:
 ## Post-Write Invariants
 
 1. slice ancestry follows spec order
-2. `tree(tip) == tree(work)` after publish/restack
+2. tip/work diff contains only `.stack/<feature>/epic.yml`
 3. locked slices are unchanged
 4. every rewritten branch passes repo validation gate
 5. cross-branch typecheck gate passed for all changed branches
 
-`tip == work` is validation only, never placement policy.
+Tip/work metadata-only diff is validation only, never placement policy.
 
 ## Standard Output
 

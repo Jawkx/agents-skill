@@ -49,6 +49,9 @@ Spec has no path map, so resolve ownership at runtime from:
 - existing slice history
 - slice intent text
 
+Always exclude `.stack/<feature>/epic.yml` from ownership assignment. It is
+work-only metadata and must never be placed on slice branches.
+
 Fail on unassigned or ambiguous paths with actionable guidance.
 
 ### 5) Create backups
@@ -67,6 +70,7 @@ Create backup refs for all branch pointers that may move:
      - apply owned paths from work
        - existing path: `git checkout <feature>/work -- <path>`
        - deleted path: `git rm --ignore-unmatch -- <path>`
+     - never apply `.stack/<feature>/epic.yml` to a slice branch
      - `git add -A`
      - commit if staged changes exist
      - `git branch -f <slice-branch> HEAD`
@@ -76,8 +80,9 @@ Empty slices are allowed; keep pointer at current HEAD.
 ### 7) Validate invariants
 
 1. Resolve tip as last spec slice.
-2. Verify `tip == work`:
-   - `git diff --quiet <tip-slice>..<feature>/work`
+2. Verify tip/work metadata-only diff:
+   - `git diff --name-only <tip-slice>..<feature>/work`
+   - expected output is exactly `.stack/<feature>/epic.yml`
 3. Stop and report divergence if mismatch.
 
 ### 8) Branch validation gate
@@ -106,9 +111,11 @@ Never force-push locked slices.
 
 ### 10) Optional work alignment
 
-If work should track tip:
+If work should track tip while keeping work-only metadata:
 
 - `git branch -f <feature>/work <tip-slice>`
+- restore `.stack/<feature>/epic.yml` on `<feature>/work`
+- commit restoration if needed
 - `git push --force-with-lease origin <feature>/work`
 
 ### 11) No persistent state file
@@ -121,5 +128,5 @@ Do not create or update `.stack/<feature>/state.json`.
 - rebuilt branches (old/new heads)
 - locked branches left untouched
 - ownership issues (if any)
-- `tip == work` status
+- tip/work metadata-only diff status
 - next step

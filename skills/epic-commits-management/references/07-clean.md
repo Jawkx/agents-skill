@@ -10,14 +10,15 @@ Finalize an epic after slices are merged by removing disposable stack branches.
 
 - write preflight passes (see `01-core-contract.md`)
 - intended slices are merged into `epic-<feature>`
-- no diff between `epic-<feature>` and `<feature>/work`
+- no non-metadata diff between `epic-<feature>` and `<feature>/work`
 
 ## Procedure
 
 1. Verify completion state.
    - confirm work branch exists (local or remote)
    - `git diff --quiet epic-<feature>..<feature>/work`
-2. If diff exists, stop and recommend `publish` or `advance` first.
+2. If non-metadata diff exists, stop and recommend `publish` or `advance`
+   first.
 3. Backup refs for branches that may be deleted.
 4. Delete work branch (remote then local):
    - `git push origin --delete <feature>/work`

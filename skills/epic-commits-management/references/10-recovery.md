@@ -72,8 +72,10 @@ When branch pointers must be restored:
 
 ### Tip/work diverged
 
-- if work is source of truth: rerun publish
-- if tip is source of truth: reset work to tip and push with lease
+- expected steady state is metadata-only diff: work differs from tip by
+  `.stack/<feature>/epic.yml` only
+- if non-metadata files differ: rerun publish
+- if work is missing `.stack/<feature>/epic.yml`: restore it on work and commit
 
 ## Last Resort: Reflog
 
@@ -90,5 +92,5 @@ Use hard reset only with explicit user approval.
 
 1. run status workflow (`references/02-status.md`)
 2. verify locked slices remain intact
-3. verify or explicitly explain `tip == work`
+3. verify or explicitly explain tip/work metadata-only diff
 4. propose one next step

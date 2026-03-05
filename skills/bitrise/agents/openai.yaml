@@ -1,4 +1,0 @@
-interface:
-  display_name: "Bitrise API"
-  short_description: "Run Bitrise API calls from terminal."
-  default_prompt: "Use $bitrise to call the Bitrise API and return the result I need."

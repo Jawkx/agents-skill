@@ -56,7 +56,8 @@ Given target index `N` in ordered slices:
 - rebuild `N+1..tip`
 - do not rewrite `1..N-1`
 - keep locked slices immutable
-- align `<feature>/work` to regenerated tip
+- align `<feature>/work` to regenerated tip plus work-only
+  `.stack/<feature>/epic.yml`
 
 Use publish mechanics from `05-publish.md` for regeneration and branch rewrites.
 
@@ -64,7 +65,7 @@ Use publish mechanics from `05-publish.md` for regeneration and branch rewrites.
 
 1. target branch contains fix after regeneration
 2. descendants are rebased/restacked on new target head
-3. `tip == work` holds after restack
+3. tip/work diff is metadata-only (`.stack/<feature>/epic.yml`)
 4. cross-branch typecheck passes on target + all rewritten descendants (+ work
    when moved/repointed)
 
@@ -92,5 +93,5 @@ Return:
 1. resolved target and evidence (PR -> branch mapping if used)
 2. fix commit on work and final landing slice
 3. descendants restacked
-4. `tip == work` validation result
+4. tip/work metadata-only diff validation result
 5. one next step
