@@ -1,6 +1,6 @@
 # Recovery
 
-Use only when a write workflow fails, placement is wrong, or rollback is needed.
+Use only when `generate` or `clean` fails, placement is wrong, or rollback is needed.
 
 ## Immediate Actions
 
@@ -25,10 +25,10 @@ When branch pointers must be restored:
 
 ## Failure Matrix
 
-Wrong slice placement:
+Wrong target chosen:
 
 - restore wrongly updated branches if needed
-- rerun `review-fixes` with explicit target
+- rerun `generate` with explicit target
 
 Dirty tree blocks preflight:
 
@@ -42,7 +42,7 @@ Missing base/work branch:
 
 Detached HEAD:
 
-- switch to safe branch (`<feature>/work` or target branch) and rerun
+- switch to safe branch (`<feature>/work` or intended slice branch) and rerun
 
 `--force-with-lease` rejected:
 
@@ -56,22 +56,23 @@ Locked slice changed unexpectedly:
 - push restored pointer with lease
 - rerun `status`
 
-Wrong base used in publish:
+Wrong generate result:
 
 - restore rewritten branches from backups
-- verify base
-- rerun `publish`
+- verify base and target
+- rerun `status` to inspect target suggestion and leftover work
+- rerun `generate` with explicit target or narrower scope
 
-Squash merge breaks ancestry check in advance:
+Squash merge makes lock boundary unclear:
 
 - verify merged PR metadata via `gh`
-- rerun `advance` with verified merged branch
+- rerun `generate` after confirming the first unlocked slice
 
-Tip/work diverged:
+Unexpected leftover work on `work`:
 
-- expected steady state is metadata-only diff (`.stack/<feature>/epic.yml` only)
-- if non-metadata files differ: rerun `publish`
-- if work is missing spec: restore `.stack/<feature>/epic.yml` on work and commit
+- classify remaining delta with `status`
+- rerun `generate` with explicit target if it should land on slices
+- otherwise leave it on `work` and report it as future work
 
 ## Last Resort: Reflog
 
@@ -88,5 +89,6 @@ Use hard reset only with explicit user approval.
 
 1. run `status`
 2. verify locked slices intact
-3. verify or explain tip/work metadata-only diff
-4. propose one next step
+3. verify changed branches match the intended slice range
+4. verify any leftover or unassigned work on `work` is explained
+5. propose one next step

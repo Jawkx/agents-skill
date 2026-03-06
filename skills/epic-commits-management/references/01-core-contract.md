@@ -7,6 +7,9 @@ Single source for placement, safety, and reporting rules.
 - base: `epic-<feature>`
 - work: `<feature>/work`
 - slices: ordered `slices[].branch_name` from `.stack/<feature>/epic.yml`
+- `work` is a disposable assembly branch. Its commit history does not need to be the review narrative, and mixed commits are acceptable.
+- slice branches are the durable review and merge units. Meaningful review history lives on slices, not on `work`.
+- unlocked slices may be rewritten during `generate`; locked slices are immutable.
 
 ## Spec Contract
 
@@ -27,35 +30,48 @@ Validation rules:
 - It must exist on `<feature>/work`.
 - It must never be committed on slice branches.
 - Do not create or update `.stack/<feature>/state.json`.
-- Post-write check: `git diff --name-only <tip-slice>..<feature>/work` must be
-  exactly `.stack/<feature>/epic.yml` (except `clean`, where work may be
-  removed).
+
+## Generate Truth
+
+- After a `generate` action, the selected changes for the selected slice range must be reflected on the generated slice branches.
+- Unrelated, future, or intentionally unassigned work may remain on `<feature>/work`.
+- Any leftover or ambiguous non-metadata delta on `<feature>/work` must be reported explicitly.
+- A non-empty diff between the tip slice and `<feature>/work` is not by itself a failure.
 
 ## Target Resolution
 
 Resolve in order:
 
 1. explicit user target (PR/branch/slice)
-2. PR head branch (`gh pr view`)
-3. best-effort mapping from spec intent + changed paths + slice history
+2. PR head branch (`gh pr view`) when the user points at a PR
+3. likely slice suggestion from spec intent + changed hunks/paths + slice history
 
-If unresolved, ask one direct question and stop writes.
+If explicit target exists, use it.
+
+If the likely target is weak or there are multiple plausible slices, show the evidence, ask one direct question, and stop writes.
+
+Do not silently place ambiguous work.
 
 Question template:
 
-"I cannot resolve the landing slice from context. Should this fix land on `04` or `05`?"
+"I think this belongs on `04-market-ui` because the patch matches that slice intent. If not, should it land on `03-market-api` instead?"
 
-## Scope Rules
+## Patch Partitioning
 
-Default targeted mode (`review-fixes`, `advance` follow-up):
+- Classify relevant `work` delta conservatively into:
+  - target slice
+  - descendant slices
+  - ambiguous hunks
+  - leftover future work
+- Use slice intent, current branch state, and patch context. Do not assume a file belongs to exactly one slice.
+- If ambiguous hunks would affect writes, ask before continuing or leave them on `work` and report them.
 
-- update target slice `N`
-- restack descendants `N+1..tip`
-- keep ancestors `1..N-1` unchanged
+## Generate Scope Rules
 
-Full publish mode (explicit rebuild request):
-
-- unlocked slices may all be rewritten in spec order
+- Default generate scope: target slice `N` plus unlocked descendants `N+1..tip`.
+- Keep ancestors `1..N-1` unchanged unless the user explicitly asks to regenerate a wider unlocked range.
+- When earlier slices are locked, start from the first unlocked slice in scope and regenerate remaining unlocked descendants in order.
+- Never place `.stack/<feature>/epic.yml` on a slice branch.
 
 ## Locked Slices
 
@@ -67,13 +83,14 @@ Locked slices are immutable.
 
 ## Write Preflight (Required)
 
-Run before `review-fixes`, `publish`, `advance`, and `clean`:
+Run before `generate` and `clean`:
 
 1. refresh refs (`git fetch origin --prune`; use `--all` only if needed)
 2. ensure clean tree (`git status --porcelain` empty)
 3. ensure non-detached HEAD
-4. ensure base/work/target visibility
-5. create backup refs for every branch pointer that may move
+4. ensure base/work and any named or candidate target branches are visible
+5. once target and scope are known, create backup refs for every branch pointer
+   that may move
 
 Dirty-tree policy:
 
@@ -92,14 +109,16 @@ Backup naming:
 - use `--force-with-lease` only for rewritten branches
 - run repo validation gate on every changed branch (`yarn tsc` minimum; stricter
   repo gate wins)
-- validation scope: target branch, rewritten descendants, and work if moved
+- validation scope: generated target branch, rewritten descendants, newly created
+  slices, and work if moved
 - any failure blocks push and done state
 
 ## Standard Output
 
 Always report:
 
-1. resolved target and evidence
-2. changed branches (target, descendants, untouched/locked)
-3. invariant results (metadata diff, lock integrity, validation gate)
-4. one next step
+1. resolved target or suggested target and evidence
+2. changed/generated branches (target, descendants, untouched/locked)
+3. leftover or ambiguous work still on `work`
+4. invariant results (lock integrity, spec placement, validation scope/gate)
+5. one next step

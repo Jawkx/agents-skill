@@ -1,6 +1,6 @@
 ---
 name: epic-commits-management
-description: Manage stacked epic slice branches safely by placing changes on the right slice, rebuilding only allowed ranges, and preserving merge locks.
+description: Manage stacked epic slice branches safely by generating durable review slices from disposable work state while preserving merge locks. Read this when Epic was mentioned to understand what user was saying.
 ---
 
 # Epic Commits Management
@@ -8,38 +8,37 @@ description: Manage stacked epic slice branches safely by placing changes on the
 Use for stacked branch workflows:
 
 - `epic-<feature>` (base)
-- `<feature>/work` (authoring branch)
+- `<feature>/work` (disposable assembly branch)
 - `<feature>/NN-*` (ordered slices from spec)
 
 ## Read Order
 
 1. Always read `references/01-core-contract.md`.
-2. Read `references/02-workflows.md` and select operation by intent.
-3. Read `references/03-recovery.md` only when a write fails or rollback is needed.
+2. Read `references/02-workflows.md`; the main write route is `generate`.
+3. Read `references/03-recovery.md` only when a write fails, target choice was wrong, or rollback is needed.
 
 ## Intent Router
 
-- PR feedback, branch feedback, "fix slice X" -> review fixes
-- "publish stack", "regenerate stack", "rebuild stack" -> publish
-- "slice merged, move stack forward" -> advance
-- "show health" or "what will rewrite" -> status
+- PR feedback, branch feedback, "fix slice X", "regenerate slice", "rebuild stack", "slice merged, restack remaining work" -> generate
+- "show health", "what will generate touch", "what is still only on work" -> status
 - "create/update epic.yml" -> plan
 - "epic done, remove branches" -> clean
 
 ## Non-Negotiables
 
-- Resolve target slice before any write.
-- For review fixes: commit on `<feature>/work` first, then place on target slice.
-- Default to targeted updates: touch target slice and descendants only.
+- Resolve target before any write; if the target is not explicit, suggest one with evidence and ask when ambiguous.
+- `work` is disposable assembly state; mixed commits are acceptable and may be split across slices during `generate`.
+- Default to targeted generation: touch the target slice and unlocked descendants only, unless the user explicitly asks for a wider unlocked regenerate.
 - Never rewrite locked slices.
 - Use `--force-with-lease` for rewritten branches only; never plain `--force`.
-- Run `yarn tsc` (or stricter repo gate) on every changed branch before finalizing.
+- Run validation on every changed branch, or a clearly defined narrower validation scope when the repo specifies one.
 
 ## Runtime Report
 
 Always return:
 
-1. target resolution and evidence,
-2. changed branches (target, descendants, untouched/locked),
-3. invariant checks,
-4. one next action.
+1. target suggestion/resolution and evidence,
+2. changed slices, rewritten descendants, and locked untouched branches,
+3. leftover or ambiguous work still on `work`,
+4. invariant and validation summary,
+5. one next action.
