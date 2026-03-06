@@ -1,48 +1,45 @@
 ---
 name: epic-commits-management
-description: Manage stacked epic slice branches safely by placing changes on the correct slice, restacking descendants only, and preserving merge locks.
+description: Manage stacked epic slice branches safely by placing changes on the right slice, rebuilding only allowed ranges, and preserving merge locks.
 ---
 
 # Epic Commits Management
 
-Use this skill for stacked branch workflows (`epic-*`, `<feature>/work`, `<feature>/NN-*`).
+Use for stacked branch workflows:
 
-## Load Order
+- `epic-<feature>` (base)
+- `<feature>/work` (authoring branch)
+- `<feature>/NN-*` (ordered slices from spec)
+
+## Read Order
 
 1. Always read `references/01-core-contract.md`.
-2. Read one workflow by intent:
-   - status: `references/02-status.md`
-   - plan: `references/03-plan.md`
-   - review fixes: `references/04-review-fixes.md`
-   - publish/regenerate: `references/05-publish.md`
-   - post-merge advance: `references/06-advance.md`
-   - cleanup: `references/07-clean.md`
-3. If a workflow fails, read `references/10-recovery.md`.
+2. Read `references/02-workflows.md` and select operation by intent.
+3. Read `references/03-recovery.md` only when a write fails or rollback is needed.
 
 ## Intent Router
 
-- PR/branch/slice feedback -> review fixes
-- generate/regenerate/republish stack -> publish
-- slice merged into epic -> advance
-- health check only -> status
-- define/update slice plan -> plan
-- stack finished -> clean
+- PR feedback, branch feedback, "fix slice X" -> review fixes
+- "publish stack", "regenerate stack", "rebuild stack" -> publish
+- "slice merged, move stack forward" -> advance
+- "show health" or "what will rewrite" -> status
+- "create/update epic.yml" -> plan
+- "epic done, remove branches" -> clean
 
-## Hard Rules
+## Non-Negotiables
 
-- Resolve target slice first, then write.
-- For review fixes, commit on `<feature>/work` first, then regenerate.
-- Ensure regeneration lands the fix on the resolved target slice and restacks descendants only.
-- tip/work metadata-only diff is validation, not placement.
+- Resolve target slice before any write.
+- For review fixes: commit on `<feature>/work` first, then place on target slice.
+- Default to targeted updates: touch target slice and descendants only.
 - Never rewrite locked slices.
-- Rewrites push with `--force-with-lease` only.
-- Run `yarn tsc` on all changed/restacked branches before finalizing.
+- Use `--force-with-lease` for rewritten branches only; never plain `--force`.
+- Run `yarn tsc` (or stricter repo gate) on every changed branch before finalizing.
 
 ## Runtime Report
 
 Always return:
 
-1. target resolution (and evidence),
-2. branches changed (target vs descendants),
-3. invariant checks (tip/work metadata-only diff, lock integrity),
+1. target resolution and evidence,
+2. changed branches (target, descendants, untouched/locked),
+3. invariant checks,
 4. one next action.
