@@ -16,14 +16,17 @@ Steps:
    - summarize `git diff --stat epic-<feature>..<feature>/work`
    - note whether the delta looks targeted, mixed across slices, ambiguous, or
      like leftover future work
-5. If user provides PR/branch/slice hint, resolve target from that context.
+5. Resolve the current official tip slice from the spec and compare it with `<feature>/work`:
+   - expect only work-only metadata after a clean full regenerate
+   - treat non-metadata diff as leftover work, stale slices, or a broken invariant
+6. If user provides PR/branch/slice hint, resolve target from that context.
    Otherwise suggest likely target slices with evidence and confidence.
-6. Preview what `generate` would touch:
+7. Preview what `generate` would touch:
    - target slice
    - unlocked descendants that would restack
    - missing slice branches that would be created
    - locked slices that would remain untouched
-7. Report ambiguity, leftovers, or missing data that would block a safe write.
+8. Report ambiguity, leftovers, invariant violations, or missing data that would block a safe write.
 
 Output:
 
@@ -31,6 +34,7 @@ Output:
 - base/work refs + ordered slices
 - lock state
 - current `work` delta summary
+- tip-slice vs `work` invariant summary
 - likely target suggestion(s) and evidence
 - `generate` impact preview
 - ambiguity / leftover notes
@@ -75,6 +79,7 @@ Steps:
 3. Inspect relevant delta on `<feature>/work` for the selected task:
    - summarize the current patch/hunk mix
    - note locked boundary, missing branches, and candidate descendants
+   - ignore non-spec branches as sources of truth, even if they contain newer-looking work
 4. Resolve target:
    - explicit branch/slice/PR hint wins
    - otherwise suggest a likely target with evidence from spec intent + changed
@@ -89,6 +94,7 @@ Steps:
    - keep ancestors before the target unchanged unless the user explicitly asked
      for a wider unlocked regenerate
    - create missing unlocked slice branches when needed
+   - source changes from `work` only
    - update the target slice first
    - regenerate unlocked descendants when their base changed or when their
      partitioned patch changes
@@ -110,6 +116,8 @@ Notes:
 - `generate` is the only user-facing write workflow; internal cases such as
   review fixes, restacks after merges, or full unlocked regenerates all use this
   flow.
+- A non-spec branch may be useful during investigation, but it must never override
+  `work` as the canonical input to `generate`.
 - Do not claim perfect automatic placement. If patch partitioning is weak, stop
   and ask.
 

@@ -7,8 +7,11 @@ Single source for placement, safety, and reporting rules.
 - base: `epic-<feature>`
 - work: `<feature>/work`
 - slices: ordered `slices[].branch_name` from `.stack/<feature>/epic.yml`
+- `work` is the only authoritative source of human-authored changes for the epic. Manual commits belong on `work`.
 - `work` is a disposable assembly branch. Its commit history does not need to be the review narrative, and mixed commits are acceptable.
 - slice branches are the durable review and merge units. Meaningful review history lives on slices, not on `work`.
+- only branches named in `.stack/<feature>/epic.yml` are official slices.
+- non-spec branches (for example `staging-*`, scratch, or experiment branches) are never authoritative epic state and must not be used as generate inputs.
 - unlocked slices may be rewritten during `generate`; locked slices are immutable.
 
 ## Spec Contract
@@ -34,9 +37,11 @@ Validation rules:
 ## Generate Truth
 
 - After a `generate` action, the selected changes for the selected slice range must be reflected on the generated slice branches.
+- `generate` may only source human-authored changes from `<feature>/work`, never from non-spec branches.
 - Unrelated, future, or intentionally unassigned work may remain on `<feature>/work`.
 - Any leftover or ambiguous non-metadata delta on `<feature>/work` must be reported explicitly.
-- A non-empty diff between the tip slice and `<feature>/work` is not by itself a failure.
+- After a full regenerate through the tip slice, the tip slice should differ from `<feature>/work` only by work-only metadata.
+- After a targeted regenerate, any remaining non-metadata diff between the tip slice and `<feature>/work` must be explained as intentional leftover future work or ambiguity.
 
 ## Target Resolution
 
@@ -72,6 +77,7 @@ Question template:
 - Keep ancestors `1..N-1` unchanged unless the user explicitly asks to regenerate a wider unlocked range.
 - When earlier slices are locked, start from the first unlocked slice in scope and regenerate remaining unlocked descendants in order.
 - Never place `.stack/<feature>/epic.yml` on a slice branch.
+- Never pull slice content from branches that are not named in the spec.
 
 ## Locked Slices
 

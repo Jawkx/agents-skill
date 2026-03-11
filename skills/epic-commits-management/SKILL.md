@@ -27,8 +27,11 @@ Use for stacked branch workflows:
 ## Non-Negotiables
 
 - Resolve target before any write; if the target is not explicit, suggest one with evidence and ask when ambiguous.
+- `work` is the only source of truth for human-authored changes in the epic. Make manual commits on `work`, not on slice branches or ad hoc branches.
 - `work` is disposable assembly state; mixed commits are acceptable and may be split across slices during `generate`.
+- Only branches listed in `.stack/<feature>/epic.yml` are official slices. Treat non-spec branches such as `staging-*`, scratch, or experiment branches as disposable context only, never as generate inputs or authoritative evidence of intended slice content.
 - Default to targeted generation: touch the target slice and unlocked descendants only, unless the user explicitly asks for a wider unlocked regenerate.
+- Generate syncs from `work` into official slices. After a full regenerate to tip with no reported leftovers, the tip slice should differ from `work` only by work-only metadata.
 - Never rewrite locked slices.
 - Use `--force-with-lease` for rewritten branches only; never plain `--force`.
 - Run validation on every changed branch, or a clearly defined narrower validation scope when the repo specifies one.
