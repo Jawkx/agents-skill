@@ -6,18 +6,18 @@ Single source for placement, safety, and reporting rules.
 
 - base: `epic-<feature>`
 - work: `<feature>/work`
-- slices: ordered `slices[].branch_name` from `.stack/<feature>/epic.yml`
+- slices: ordered `slices[].branch_name` from repo-root `epic.yml`
 - `work` is the only authoritative source of human-authored changes for the epic. Manual commits belong on `work`.
 - `work` is a disposable assembly branch. Its commit history does not need to be the review narrative, and mixed commits are acceptable.
 - slice branches are the durable review and merge units. Meaningful review history lives on slices, not on `work`.
 - if a new human-authored commit is found on a slice branch, treat that as accidental authoring state: move the commit onto `work` before `generate`, then regenerate slices from `work`.
-- only branches named in `.stack/<feature>/epic.yml` are official slices.
+- only branches named in repo-root `epic.yml` are official slices.
 - non-spec branches (for example `staging-*`, scratch, or experiment branches) are never authoritative epic state and must not be used as generate inputs.
 - unlocked slices may be rewritten during `generate`; locked slices are immutable.
 
 ## Spec Contract
 
-`.stack/<feature>/epic.yml` must define:
+Repo-root `epic.yml` must define:
 
 - `feature`, `base`, `work`
 - ordered `slices[]` entries with `branch_name`, `intent`
@@ -30,10 +30,10 @@ Validation rules:
 
 ## Metadata Rules
 
-- `.stack/<feature>/epic.yml` is work-only metadata.
-- It must exist on `<feature>/work`.
+- `epic.yml` is work-only metadata.
+- It must exist at the repository root on `<feature>/work`.
 - It must never be committed on slice branches.
-- Do not create or update `.stack/<feature>/state.json`.
+- Do not create or update a separate epic state file.
 
 ## Generate Truth
 
@@ -77,7 +77,7 @@ Question template:
 - Default generate scope: target slice `N` plus unlocked descendants `N+1..tip`.
 - Keep ancestors `1..N-1` unchanged unless the user explicitly asks to regenerate a wider unlocked range.
 - When earlier slices are locked, start from the first unlocked slice in scope and regenerate remaining unlocked descendants in order.
-- Never place `.stack/<feature>/epic.yml` on a slice branch.
+- Never place `epic.yml` on a slice branch.
 - Never pull slice content from branches that are not named in the spec.
 
 ## Locked Slices

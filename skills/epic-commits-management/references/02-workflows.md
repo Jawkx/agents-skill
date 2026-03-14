@@ -9,7 +9,7 @@ Use for health checks, target suggestion, and `generate` preview.
 Steps:
 
 1. `git fetch origin --prune`.
-2. Resolve base/work and ordered slices from `.stack/<feature>/epic.yml`.
+2. Resolve base/work and ordered slices from repo-root `epic.yml`.
    - If spec is missing, discover `<feature>/*` branches and mark output partial.
 3. Resolve lock state for every slice and identify the first unlocked slice.
 4. Inspect current delta on `<feature>/work`:
@@ -42,11 +42,11 @@ Output:
 
 ## plan (read-only)
 
-Use to create or update `.stack/<feature>/epic.yml`.
+Use to create or update repo-root `epic.yml`.
 
 Steps:
 
-1. Ensure `.stack/<feature>/` exists.
+1. Use repo-root `epic.yml` as the spec path.
 2. If spec is missing, create from `assets/epic.template.yml`.
 3. Validate required fields: `feature`, `base`, `work`, `slices[]`.
 4. Validate each slice entry:
@@ -110,7 +110,7 @@ Steps:
      that needs regeneration
 9. Validate changed branches:
    - locked slices unchanged
-   - `.stack/<feature>/epic.yml` stays off slices
+   - `epic.yml` stays off slices
    - selected slice range reflects the generated patch
    - run repo validation gate on changed branches and `work` if moved
 10. Push safely:
@@ -160,7 +160,7 @@ Steps:
 3. Create backup refs for branches that may be deleted.
 4. Delete work branch (remote, then local).
 5. Optionally delete slice branches per team policy.
-6. Optionally keep or remove `.stack/<feature>/epic.yml`.
+6. Optionally keep or remove repo-root `epic.yml`.
 
 Output:
 
