@@ -76,21 +76,24 @@ Steps:
 
 1. Run write preflight.
 2. Resolve base, `work`, ordered slices, and lock state.
-3. Inspect relevant delta on `<feature>/work` for the selected task:
+3. If newly authored commits are sitting on a slice branch instead of `work`, stop treating that slice branch as the source of truth:
+   - move the commit(s) onto `<feature>/work` first (for example via cherry-pick)
+   - continue `generate` from `work`, not from the accidentally authored slice branch
+4. Inspect relevant delta on `<feature>/work` for the selected task:
    - summarize the current patch/hunk mix
    - note locked boundary, missing branches, and candidate descendants
    - ignore non-spec branches as sources of truth, even if they contain newer-looking work
-4. Resolve target:
+5. Resolve target:
    - explicit branch/slice/PR hint wins
    - otherwise suggest a likely target with evidence from spec intent + changed
      hunks/paths + slice history
-5. If target is ambiguous, ask one direct question and stop before any write.
-6. Partition the relevant `work` delta conservatively into:
+6. If target is ambiguous, ask one direct question and stop before any write.
+7. Partition the relevant `work` delta conservatively into:
    - target slice
    - descendant slices
    - ambiguous hunks that need user confirmation
    - leftover future work that should stay on `work`
-7. Update slices in spec order without touching locked slices:
+8. Update slices in spec order without touching locked slices:
    - keep ancestors before the target unchanged unless the user explicitly asked
      for a wider unlocked regenerate
    - create missing unlocked slice branches when needed
@@ -98,17 +101,22 @@ Steps:
    - update the target slice first
    - regenerate unlocked descendants when their base changed or when their
      partitioned patch changes
+   - when descendant restacks are needed, record each descendant's old parent
+     and restack with explicit boundaries such as
+     `git rebase --onto <new-parent> <old-parent> <descendant>`
+   - when continue steps are needed during automation, run them non-interactively
+     with `GIT_EDITOR=true`
    - if earlier slices are already locked, continue from the first unlocked slice
      that needs regeneration
-8. Validate changed branches:
+9. Validate changed branches:
    - locked slices unchanged
    - `.stack/<feature>/epic.yml` stays off slices
    - selected slice range reflects the generated patch
    - run repo validation gate on changed branches and `work` if moved
-9. Push safely:
-   - fast-forward when possible
-   - use `--force-with-lease` only for rewritten branches
-10. Report generated branches, locked untouched branches, and any leftover or
+10. Push safely:
+    - fast-forward when possible
+    - use `--force-with-lease` only for rewritten branches
+11. Report generated branches, locked untouched branches, and any leftover or
     ambiguous work still on `<feature>/work`.
 
 Notes:

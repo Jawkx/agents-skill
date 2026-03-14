@@ -10,6 +10,7 @@ Single source for placement, safety, and reporting rules.
 - `work` is the only authoritative source of human-authored changes for the epic. Manual commits belong on `work`.
 - `work` is a disposable assembly branch. Its commit history does not need to be the review narrative, and mixed commits are acceptable.
 - slice branches are the durable review and merge units. Meaningful review history lives on slices, not on `work`.
+- if a new human-authored commit is found on a slice branch, treat that as accidental authoring state: move the commit onto `work` before `generate`, then regenerate slices from `work`.
 - only branches named in `.stack/<feature>/epic.yml` are official slices.
 - non-spec branches (for example `staging-*`, scratch, or experiment branches) are never authoritative epic state and must not be used as generate inputs.
 - unlocked slices may be rewritten during `generate`; locked slices are immutable.
@@ -101,13 +102,20 @@ Run before `generate` and `clean`:
 Dirty-tree policy:
 
 - never discard user edits
-- if edits must be preserved, run writes from a temporary worktree under repo
-  parent
-- avoid `/tmp` unless user explicitly asks
+- do not auto-stash, auto-clean, or auto-create a temporary worktree
+- if the tree is dirty and safe writes would require switching branches or clearing unrelated edits, ask the user one direct question and stop before any write
+- recommend stashing unrelated edits first and restoring them after the epic write; the alternate path is for the user to clean/remove those edits manually before continuing
+
+## Automation Rules
+
+- run git write automation non-interactively; avoid flows that require opening an editor or waiting on prompts
+- use `GIT_EDITOR=true` for scripted `git rebase --continue`, `git cherry-pick --continue`, and similar continue steps unless the user explicitly wants to edit the message
+- restack descendants with explicit old/new parent boundaries, for example `git rebase --onto <new-parent> <old-parent> <descendant>`
+- do not use plain `git rebase <new-parent>` for stacked descendant restacks
 
 Backup naming:
 
-`backup/<feature>/<YYYYMMDD-HHMMSS>-<branch-slug>` (`/` becomes `--`)
+`backup/<feature>/<YYYYMMDD-HHMMSS>-<branch-slug>` 
 
 ## Push And Validation Rules
 

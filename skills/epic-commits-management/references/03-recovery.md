@@ -32,7 +32,24 @@ Wrong target chosen:
 
 Dirty tree blocks preflight:
 
-- commit/stash, or run writes from temporary worktree
+- ask the user how to clear the dirty state before any write
+- recommend stashing unrelated edits first and restoring them later
+- alternate path: the user cleans/removes the unrelated edits manually
+- do not auto-stash, auto-discard edits, or auto-create a temporary worktree
+
+Interactive editor blocks `--continue`:
+
+- rerun with `GIT_EDITOR=true git rebase --continue` or
+  `GIT_EDITOR=true git cherry-pick --continue`
+- only open an editor if the user explicitly wants to edit the message
+
+Wrong-branch authored commit:
+
+- identify the newly authored commit(s) on the slice branch
+- cherry-pick them onto `<feature>/work`
+- restore the wrongly-authored slice from backup if needed, or rerun `generate`
+  so slices are rebuilt from `work`
+- continue from `work`, not from the accidentally-authored slice branch
 
 Missing base/work branch:
 
@@ -62,6 +79,15 @@ Wrong generate result:
 - verify base and target
 - rerun `status` to inspect target suggestion and leftover work
 - rerun `generate` with explicit target or narrower scope
+
+Descendant restack replays old parent commits:
+
+- inspect the stopped commit and decide whether it belongs to the replaced parent
+  slice or the descendant's unique work
+- if it is a duplicate ancestor commit, `git rebase --skip`
+- if restarting the restack, prefer
+  `git rebase --onto <new-parent> <old-parent> <descendant>` over plain
+  `git rebase <new-parent>`
 
 Squash merge makes lock boundary unclear:
 

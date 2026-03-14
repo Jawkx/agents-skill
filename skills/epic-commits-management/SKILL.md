@@ -29,10 +29,13 @@ Use for stacked branch workflows:
 - Resolve target before any write; if the target is not explicit, suggest one with evidence and ask when ambiguous.
 - `work` is the only source of truth for human-authored changes in the epic. Make manual commits on `work`, not on slice branches or ad hoc branches.
 - `work` is disposable assembly state; mixed commits are acceptable and may be split across slices during `generate`.
+- If the current worktree is dirty and safe epic writes would require stashing or cleaning unrelated edits, ask the user what to do before continuing. Do not auto-stash, auto-discard edits, or auto-create a temporary worktree.
 - Only branches listed in `.stack/<feature>/epic.yml` are official slices. Treat non-spec branches such as `staging-*`, scratch, or experiment branches as disposable context only, never as generate inputs or authoritative evidence of intended slice content.
 - Default to targeted generation: touch the target slice and unlocked descendants only, unless the user explicitly asks for a wider unlocked regenerate.
 - Generate syncs from `work` into official slices. After a full regenerate to tip with no reported leftovers, the tip slice should differ from `work` only by work-only metadata.
 - Never rewrite locked slices.
+- Restack descendants with explicit old/new parent boundaries such as `git rebase --onto <new-parent> <old-parent> <branch>`, not plain `git rebase <new-parent>`.
+- Run rebase/cherry-pick continue steps non-interactively (`GIT_EDITOR=true`) unless the user explicitly wants to edit the commit message.
 - Use `--force-with-lease` for rewritten branches only; never plain `--force`.
 - Run validation on every changed branch, or a clearly defined narrower validation scope when the repo specifies one.
 
