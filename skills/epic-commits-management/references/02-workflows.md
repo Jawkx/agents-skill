@@ -9,7 +9,7 @@ Use for health checks, target suggestion, and `generate` preview.
 Steps:
 
 1. `git fetch origin --prune`.
-2. Resolve base/work, ordered slices, and any `generated_from_work_commit` value from repo-root `epic.yml`.
+2. Resolve base/work, optional `upstream_base`, ordered slices, and any `generated_from_work_commit` value from repo-root `epic.yml`.
    - If spec is missing, discover `<feature>/*` branches and mark output partial.
 3. Resolve lock state for every slice and identify the first unlocked slice.
 4. Inspect current delta on `<feature>/work`:
@@ -34,7 +34,7 @@ Steps:
 Output:
 
 - result (`pass`/`partial`/`fail`)
-- base/work refs + ordered slices
+- base/work refs + optional `upstream_base` + ordered slices
 - lock state
 - current `work` delta summary
 - tip-slice vs `work` invariant summary
@@ -54,6 +54,7 @@ Steps:
 2. If spec is missing, create from `assets/epic.template.yml`.
 3. Validate required fields: `feature`, `base`, `work`, `slices`.
    - `slices` must be an array and may be empty before the first generated slice exists
+   - if `upstream_base` is present, validate it as a non-empty branch ref string
    - treat `generated_from_work_commit` as optional system-managed metadata
 4. Validate each slice entry when `slices` is non-empty:
    - has `branch_name` and `intent`
@@ -66,6 +67,7 @@ Output:
 
 - result (`valid`/`invalid`)
 - plan path used
+- base/work refs + optional `upstream_base`
 - ordered slice table (`branch_name`, `intent`)
 - validation issues and suggested patch when invalid
 
@@ -82,7 +84,7 @@ Use for the main write action:
 Steps:
 
 1. Run write preflight.
-2. Resolve base, `work`, ordered slices, and lock state.
+2. Resolve base, `work`, optional `upstream_base`, ordered slices, and lock state.
    - If `slices` is empty, stop and report that the epic metadata exists but no official slices have been defined yet.
 3. If newly authored commits are sitting on a slice branch instead of `work`, stop treating that slice branch as the source of truth:
    - move the commit(s) onto `<feature>/work` first (for example via cherry-pick)
@@ -143,6 +145,7 @@ Notes:
 - `generate` is the only user-facing write workflow; internal cases such as
   review fixes, restacks after merges, or full unlocked regenerates all use this
   flow.
+- If the operation includes rebasing the epic `base` branch itself and `upstream_base` is present, prefer that recorded parent ref over guesswork.
 - A non-spec branch may be useful during investigation, but it must never override
   `work` as the canonical input to `generate`.
 - `generated_from_work_commit` is refreshed after every successful `generate`, including targeted runs.

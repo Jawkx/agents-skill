@@ -30,6 +30,7 @@ Use for stacked branch workflows:
 - `work` is the only source of truth for human-authored changes in the epic. Make manual commits on `work`, not on slice branches or ad hoc branches.
 - `work` is disposable assembly state; mixed commits are acceptable and may be split across slices during `generate`.
 - Every epic must have a repo-root `epic.yml`, even before the first generated slice exists. When there are no official slices yet, record that with `slices: []` so base/work metadata is still tracked.
+- When an epic base branch is expected to sit on top of another branch, record that parent branch in `epic.yml.upstream_base` so future rebases and restacks have an explicit source of truth.
 - If the current worktree is dirty and safe epic writes would require stashing or cleaning unrelated edits, ask the user what to do before continuing. Do not auto-stash, auto-discard edits, or auto-create a temporary worktree.
 - Only branches listed in repo-root `epic.yml` are official slices. Treat non-spec branches such as `staging-*`, scratch, or experiment branches as disposable context only, never as generate inputs or authoritative evidence of intended slice content.
 - Default to targeted generation: touch the target slice and unlocked descendants only, unless the user explicitly asks for a wider unlocked regenerate.

@@ -22,6 +22,7 @@ Repo-root `epic.yml` must define:
 - `feature`, `base`, `work`
 - `slices` as an array; use `slices: []` before the first generated slice exists
 - ordered `slices[]` entries with `branch_name`, `intent` when official slices exist
+- optional `upstream_base` metadata storing the branch that the epic `base` branch should rebase onto
 - optional `generated_from_work_commit` metadata storing the full 40-character SHA from the `<feature>/work` commit used by the most recent successful `generate`
 
 Validation rules:
@@ -31,6 +32,7 @@ Validation rules:
 - `branch_name` is unique
 - `branch_name` starts with `<feature>/`
 - `intent` is non-empty
+- if `upstream_base` is present, it must be a non-empty branch ref string
 - if `generated_from_work_commit` is present, it must be a full 40-character lowercase hex SHA
 
 ## Metadata Rules
@@ -39,6 +41,7 @@ Validation rules:
 - It must exist at the repository root on `<feature>/work`.
 - Create it as soon as the epic branches exist, even if no official slices have been generated yet.
 - It must never be committed on slice branches.
+- `upstream_base`, when present, is user-managed metadata describing the intended parent for rebasing the epic `base` branch.
 - `generated_from_work_commit` is system-managed metadata.
 - After each successful `generate`, it must be refreshed to the exact `<feature>/work` commit used as that generate run's source.
 - Do not create or update a separate epic state file.
@@ -52,6 +55,12 @@ Validation rules:
 - Any leftover or ambiguous non-metadata delta on `<feature>/work` must be reported explicitly.
 - After a full regenerate through the tip slice, the tip slice should differ from `<feature>/work` only by work-only metadata.
 - After a targeted regenerate, any remaining non-metadata diff between the tip slice and `<feature>/work` must be explained as intentional leftover future work or ambiguity.
+
+## Upstream Base Metadata
+
+- `upstream_base` is optional but recommended when the epic `base` branch is intended to stay rebased on another moving branch.
+- When present, treat `upstream_base` as the preferred parent ref for rebasing `base` during epic maintenance.
+- `upstream_base` does not make that branch an official slice and must not be treated as a generate input for slice content.
 
 ## Target Resolution
 
