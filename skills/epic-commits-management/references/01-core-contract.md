@@ -6,7 +6,7 @@ Single source for placement, safety, and reporting rules.
 
 - base: `epic-<feature>`
 - work: `<feature>/work`
-- slices: ordered `slices[].branch_name` from repo-root `epic.yml`
+- slices: ordered `slices[].branch_name` from repo-root `epic.yml`; the array may be empty before the first generated slice exists
 - `work` is the only authoritative source of human-authored changes for the epic. Manual commits belong on `work`.
 - `work` is a disposable assembly branch. Its commit history does not need to be the review narrative, and mixed commits are acceptable.
 - slice branches are the durable review and merge units. Meaningful review history lives on slices, not on `work`.
@@ -20,11 +20,14 @@ Single source for placement, safety, and reporting rules.
 Repo-root `epic.yml` must define:
 
 - `feature`, `base`, `work`
-- ordered `slices[]` entries with `branch_name`, `intent`
+- `slices` as an array; use `slices: []` before the first generated slice exists
+- ordered `slices[]` entries with `branch_name`, `intent` when official slices exist
 - optional `generated_from_work_commit` metadata storing the full 40-character SHA from the `<feature>/work` commit used by the most recent successful `generate`
 
 Validation rules:
 
+- `slices` is an array
+- `slices` may be empty before the first generated slice exists
 - `branch_name` is unique
 - `branch_name` starts with `<feature>/`
 - `intent` is non-empty
@@ -34,6 +37,7 @@ Validation rules:
 
 - `epic.yml` is work-only metadata.
 - It must exist at the repository root on `<feature>/work`.
+- Create it as soon as the epic branches exist, even if no official slices have been generated yet.
 - It must never be committed on slice branches.
 - `generated_from_work_commit` is system-managed metadata.
 - After each successful `generate`, it must be refreshed to the exact `<feature>/work` commit used as that generate run's source.
@@ -120,7 +124,7 @@ Dirty-tree policy:
 
 Backup naming:
 
-`backup/<feature>/<YYYYMMDD-HHMMSS>-<branch-slug>` 
+`backup/<feature>/<YYYYMMDD-HHMMSS>-<branch-slug>`
 
 ## Push And Validation Rules
 

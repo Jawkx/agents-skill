@@ -52,9 +52,10 @@ Steps:
 
 1. Use repo-root `epic.yml` as the spec path.
 2. If spec is missing, create from `assets/epic.template.yml`.
-3. Validate required fields: `feature`, `base`, `work`, `slices[]`.
+3. Validate required fields: `feature`, `base`, `work`, `slices`.
+   - `slices` must be an array and may be empty before the first generated slice exists
    - treat `generated_from_work_commit` as optional system-managed metadata
-4. Validate each slice entry:
+4. Validate each slice entry when `slices` is non-empty:
    - has `branch_name` and `intent`
    - `branch_name` is unique
    - `branch_name` starts with `<feature>/`
@@ -82,6 +83,7 @@ Steps:
 
 1. Run write preflight.
 2. Resolve base, `work`, ordered slices, and lock state.
+   - If `slices` is empty, stop and report that the epic metadata exists but no official slices have been defined yet.
 3. If newly authored commits are sitting on a slice branch instead of `work`, stop treating that slice branch as the source of truth:
    - move the commit(s) onto `<feature>/work` first (for example via cherry-pick)
    - continue `generate` from `work`, not from the accidentally authored slice branch
@@ -116,19 +118,25 @@ Steps:
    - if earlier slices are already locked, continue from the first unlocked slice
      that needs regeneration
 10. Refresh repo-root `epic.yml` on `<feature>/work`:
-   - set `generated_from_work_commit` to the full 40-character SHA of the exact `<feature>/work` commit used as the source for this generate run
-   - keep that metadata on `work` only and off slice branches
+
+- set `generated_from_work_commit` to the full 40-character SHA of the exact `<feature>/work` commit used as the source for this generate run
+- keep that metadata on `work` only and off slice branches
+
 11. Validate changed branches:
-   - locked slices unchanged
-   - `epic.yml` stays off slices
-   - `generated_from_work_commit` matches the source `work` SHA from this generate run
-   - selected slice range reflects the generated patch
-   - run repo validation gate on changed branches and `work` if moved
+
+- locked slices unchanged
+- `epic.yml` stays off slices
+- `generated_from_work_commit` matches the source `work` SHA from this generate run
+- selected slice range reflects the generated patch
+- run repo validation gate on changed branches and `work` if moved
+
 12. Push safely:
-   - fast-forward when possible
-   - use `--force-with-lease` only for rewritten branches
+
+- fast-forward when possible
+- use `--force-with-lease` only for rewritten branches
+
 13. Report generated branches, locked untouched branches, and any leftover or
-   ambiguous work still on `<feature>/work`.
+    ambiguous work still on `<feature>/work`.
 
 Notes:
 
