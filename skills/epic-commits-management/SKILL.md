@@ -33,6 +33,7 @@ Use for stacked branch workflows:
 - Only branches listed in repo-root `epic.yml` are official slices. Treat non-spec branches such as `staging-*`, scratch, or experiment branches as disposable context only, never as generate inputs or authoritative evidence of intended slice content.
 - Default to targeted generation: touch the target slice and unlocked descendants only, unless the user explicitly asks for a wider unlocked regenerate.
 - Generate syncs from `work` into official slices. After a full regenerate to tip with no reported leftovers, the tip slice should differ from `work` only by work-only metadata.
+- After every successful `generate`, refresh `epic.yml.generated_from_work_commit` to the full SHA of the `<feature>/work` commit used for that run.
 - Never rewrite locked slices.
 - Restack descendants with explicit old/new parent boundaries such as `git rebase --onto <new-parent> <old-parent> <branch>`, not plain `git rebase <new-parent>`.
 - Run rebase/cherry-pick continue steps non-interactively (`GIT_EDITOR=true`) unless the user explicitly wants to edit the commit message.

@@ -9,7 +9,7 @@ Use for health checks, target suggestion, and `generate` preview.
 Steps:
 
 1. `git fetch origin --prune`.
-2. Resolve base/work and ordered slices from repo-root `epic.yml`.
+2. Resolve base/work, ordered slices, and any `generated_from_work_commit` value from repo-root `epic.yml`.
    - If spec is missing, discover `<feature>/*` branches and mark output partial.
 3. Resolve lock state for every slice and identify the first unlocked slice.
 4. Inspect current delta on `<feature>/work`:
@@ -19,14 +19,17 @@ Steps:
 5. Resolve the current official tip slice from the spec and compare it with `<feature>/work`:
    - expect only work-only metadata after a clean full regenerate
    - treat non-metadata diff as leftover work, stale slices, or a broken invariant
-6. If user provides PR/branch/slice hint, resolve target from that context.
+6. Compare `generated_from_work_commit` with the current full SHA of `<feature>/work` HEAD:
+   - report whether the metadata is missing, current, or stale
+   - a matching SHA proves the latest successful `generate` used the current `work` HEAD, but targeted generates may still leave intentional future work on `work`
+7. If user provides PR/branch/slice hint, resolve target from that context.
    Otherwise suggest likely target slices with evidence and confidence.
-7. Preview what `generate` would touch:
+8. Preview what `generate` would touch:
    - target slice
    - unlocked descendants that would restack
    - missing slice branches that would be created
    - locked slices that would remain untouched
-8. Report ambiguity, leftovers, invariant violations, or missing data that would block a safe write.
+9. Report ambiguity, leftovers, invariant violations, or missing data that would block a safe write.
 
 Output:
 
@@ -35,6 +38,7 @@ Output:
 - lock state
 - current `work` delta summary
 - tip-slice vs `work` invariant summary
+- `generated_from_work_commit` status (`missing`/`current`/`stale`) and recorded SHA when present
 - likely target suggestion(s) and evidence
 - `generate` impact preview
 - ambiguity / leftover notes
@@ -49,11 +53,13 @@ Steps:
 1. Use repo-root `epic.yml` as the spec path.
 2. If spec is missing, create from `assets/epic.template.yml`.
 3. Validate required fields: `feature`, `base`, `work`, `slices[]`.
+   - treat `generated_from_work_commit` as optional system-managed metadata
 4. Validate each slice entry:
    - has `branch_name` and `intent`
    - `branch_name` is unique
    - `branch_name` starts with `<feature>/`
    - `intent` is non-empty
+5. If `generated_from_work_commit` is present, validate it as a full 40-character lowercase hex SHA.
 
 Output:
 
@@ -79,21 +85,22 @@ Steps:
 3. If newly authored commits are sitting on a slice branch instead of `work`, stop treating that slice branch as the source of truth:
    - move the commit(s) onto `<feature>/work` first (for example via cherry-pick)
    - continue `generate` from `work`, not from the accidentally authored slice branch
-4. Inspect relevant delta on `<feature>/work` for the selected task:
+4. Capture the exact full SHA of `<feature>/work` HEAD that will act as the source commit for this generate run.
+5. Inspect relevant delta on `<feature>/work` for the selected task:
    - summarize the current patch/hunk mix
    - note locked boundary, missing branches, and candidate descendants
    - ignore non-spec branches as sources of truth, even if they contain newer-looking work
-5. Resolve target:
+6. Resolve target:
    - explicit branch/slice/PR hint wins
    - otherwise suggest a likely target with evidence from spec intent + changed
      hunks/paths + slice history
-6. If target is ambiguous, ask one direct question and stop before any write.
-7. Partition the relevant `work` delta conservatively into:
+7. If target is ambiguous, ask one direct question and stop before any write.
+8. Partition the relevant `work` delta conservatively into:
    - target slice
    - descendant slices
    - ambiguous hunks that need user confirmation
    - leftover future work that should stay on `work`
-8. Update slices in spec order without touching locked slices:
+9. Update slices in spec order without touching locked slices:
    - keep ancestors before the target unchanged unless the user explicitly asked
      for a wider unlocked regenerate
    - create missing unlocked slice branches when needed
@@ -108,16 +115,20 @@ Steps:
      with `GIT_EDITOR=true`
    - if earlier slices are already locked, continue from the first unlocked slice
      that needs regeneration
-9. Validate changed branches:
+10. Refresh repo-root `epic.yml` on `<feature>/work`:
+   - set `generated_from_work_commit` to the full 40-character SHA of the exact `<feature>/work` commit used as the source for this generate run
+   - keep that metadata on `work` only and off slice branches
+11. Validate changed branches:
    - locked slices unchanged
    - `epic.yml` stays off slices
+   - `generated_from_work_commit` matches the source `work` SHA from this generate run
    - selected slice range reflects the generated patch
    - run repo validation gate on changed branches and `work` if moved
-10. Push safely:
-    - fast-forward when possible
-    - use `--force-with-lease` only for rewritten branches
-11. Report generated branches, locked untouched branches, and any leftover or
-    ambiguous work still on `<feature>/work`.
+12. Push safely:
+   - fast-forward when possible
+   - use `--force-with-lease` only for rewritten branches
+13. Report generated branches, locked untouched branches, and any leftover or
+   ambiguous work still on `<feature>/work`.
 
 Notes:
 
@@ -126,6 +137,7 @@ Notes:
   flow.
 - A non-spec branch may be useful during investigation, but it must never override
   `work` as the canonical input to `generate`.
+- `generated_from_work_commit` is refreshed after every successful `generate`, including targeted runs.
 - Do not claim perfect automatic placement. If patch partitioning is weak, stop
   and ask.
 

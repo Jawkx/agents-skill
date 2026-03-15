@@ -1,6 +1,7 @@
 feature: add-market-screen
 base: epic-add-market-screen
 work: add-market-screen/work
+generated_from_work_commit: 0123456789abcdef0123456789abcdef01234567
 
 slices:
   - branch_name: add-market-screen/01-redux-store

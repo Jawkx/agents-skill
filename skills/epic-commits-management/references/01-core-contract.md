@@ -21,24 +21,29 @@ Repo-root `epic.yml` must define:
 
 - `feature`, `base`, `work`
 - ordered `slices[]` entries with `branch_name`, `intent`
+- optional `generated_from_work_commit` metadata storing the full 40-character SHA from the `<feature>/work` commit used by the most recent successful `generate`
 
 Validation rules:
 
 - `branch_name` is unique
 - `branch_name` starts with `<feature>/`
 - `intent` is non-empty
+- if `generated_from_work_commit` is present, it must be a full 40-character lowercase hex SHA
 
 ## Metadata Rules
 
 - `epic.yml` is work-only metadata.
 - It must exist at the repository root on `<feature>/work`.
 - It must never be committed on slice branches.
+- `generated_from_work_commit` is system-managed metadata.
+- After each successful `generate`, it must be refreshed to the exact `<feature>/work` commit used as that generate run's source.
 - Do not create or update a separate epic state file.
 
 ## Generate Truth
 
 - After a `generate` action, the selected changes for the selected slice range must be reflected on the generated slice branches.
 - `generate` may only source human-authored changes from `<feature>/work`, never from non-spec branches.
+- After a successful `generate`, repo-root `epic.yml` on `<feature>/work` must record that source commit in `generated_from_work_commit`.
 - Unrelated, future, or intentionally unassigned work may remain on `<feature>/work`.
 - Any leftover or ambiguous non-metadata delta on `<feature>/work` must be reported explicitly.
 - After a full regenerate through the tip slice, the tip slice should differ from `<feature>/work` only by work-only metadata.
