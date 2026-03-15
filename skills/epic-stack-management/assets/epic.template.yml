@@ -1,5 +1,5 @@
 feature: your-feature
 base: epic-your-feature
 work: your-feature/work
-upstream_base: parent-feature/01-some-slice
-slices: []
+upstream_base: parent-feature/01-some-branch
+branches: []

@@ -45,11 +45,11 @@ Interactive editor blocks `--continue`:
 
 Wrong-branch authored commit:
 
-- identify the newly authored commit(s) on the slice branch
+- identify the newly authored commit(s) on the review branch
 - cherry-pick them onto `<feature>/work`
-- restore the wrongly-authored slice from backup if needed, or rerun `generate`
-  so slices are rebuilt from `work`
-- continue from `work`, not from the accidentally-authored slice branch
+- restore the wrongly-authored branch from backup if needed, or rerun `generate`
+  so branches are rebuilt from `work`
+- continue from `work`, not from the accidentally-authored review branch
 
 Missing base/work branch:
 
@@ -59,7 +59,7 @@ Missing base/work branch:
 
 Detached HEAD:
 
-- switch to safe branch (`<feature>/work` or intended slice branch) and rerun
+- switch to safe branch (`<feature>/work` or intended review branch) and rerun
 
 `--force-with-lease` rejected:
 
@@ -67,7 +67,7 @@ Detached HEAD:
 - inspect remote updates
 - rerun from fresh refs
 
-Locked slice changed unexpectedly:
+Locked branch changed unexpectedly:
 
 - restore from backup
 - push restored pointer with lease
@@ -83,7 +83,7 @@ Wrong generate result:
 Descendant restack replays old parent commits:
 
 - inspect the stopped commit and decide whether it belongs to the replaced parent
-  slice or the descendant's unique work
+  branch or the descendant's unique work
 - if it is a duplicate ancestor commit, `git rebase --skip`
 - if restarting the restack, prefer
   `git rebase --onto <new-parent> <old-parent> <descendant>` over plain
@@ -92,12 +92,12 @@ Descendant restack replays old parent commits:
 Squash merge makes lock boundary unclear:
 
 - verify merged PR metadata via `gh`
-- rerun `generate` after confirming the first unlocked slice
+- rerun `generate` after confirming the first unlocked branch
 
 Unexpected leftover work on `work`:
 
 - classify remaining delta with `status`
-- rerun `generate` with explicit target if it should land on slices
+- rerun `generate` with explicit target if it should land on branches
 - otherwise leave it on `work` and report it as future work
 
 ## Last Resort: Reflog
@@ -114,7 +114,7 @@ Use hard reset only with explicit user approval.
 ## Post-Recovery Checks
 
 1. run `status`
-2. verify locked slices intact
-3. verify changed branches match the intended slice range
+2. verify locked branches intact
+3. verify changed branches match the intended branch range
 4. verify any leftover or unassigned work on `work` is explained
 5. propose one next step
