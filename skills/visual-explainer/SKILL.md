@@ -26,9 +26,9 @@ Generate a polished single-file HTML artifact when plain text would be hard to s
 - Keep prose concise; the page should carry the explanation.
 - Verify every factual claim against source material before rendering it.
 
-## Boundaries
+## Boundariess
 
-- If the user wants raw Mermaid syntax, plain Markdown, or a terse answer, do not force HTML.
+ If the user wants raw Mermaid syntax, plain Markdown, or a terse answer, do not force HTML.
 - If the task is building a real application UI rather than a static explainer artifact, prefer `frontend-design`.
 - If the output is primarily Mermaid source, prefer `mermaid-diagrams`.
 
