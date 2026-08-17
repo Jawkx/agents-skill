@@ -1,0 +1,198 @@
+{
+  "version": 3,
+  "skills": {
+    "hallmark": {
+      "source": "nutlope/hallmark",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/nutlope/hallmark.git",
+      "skillPath": "skills/hallmark/SKILL.md",
+      "skillFolderHash": "3943c7eb8106e9352f9b164ec81f9bb262d2951b",
+      "installedAt": "2026-06-14T15:51:17.622Z",
+      "updatedAt": "2026-06-14T15:51:17.622Z"
+    },
+    "improve": {
+      "source": "shadcn/improve",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/shadcn/improve.git",
+      "skillPath": "skills/improve/SKILL.md",
+      "skillFolderHash": "7d77d76815e6deb704427f17f6e393f55e3cb6da",
+      "installedAt": "2026-06-15T08:33:35.126Z",
+      "updatedAt": "2026-06-15T08:33:35.126Z"
+    },
+    "emil-design-eng": {
+      "source": "emilkowalski/skill",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/emilkowalski/skill.git",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "skillFolderHash": "0e6f8d7223a0abe73f81e890b3ec76257029a834",
+      "installedAt": "2026-06-29T17:45:42.037Z",
+      "updatedAt": "2026-06-29T17:45:42.037Z"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skill",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/emilkowalski/skill.git",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "skillFolderHash": "babe81c1ca0ae3c735fc537486cb120cd6645198",
+      "installedAt": "2026-06-29T17:45:42.040Z",
+      "updatedAt": "2026-06-29T17:45:42.040Z"
+    },
+    "make-interfaces-feel-better": {
+      "source": "jakubkrehel/make-interfaces-feel-better",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/jakubkrehel/make-interfaces-feel-better.git",
+      "skillPath": "skills/make-interfaces-feel-better/SKILL.md",
+      "skillFolderHash": "320672d06e899682d8923286d864efe3719d9c77",
+      "installedAt": "2026-07-07T03:27:14.839Z",
+      "updatedAt": "2026-07-07T03:27:14.839Z"
+    },
+    "argent-android-emulator-setup": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-android-emulator-setup/SKILL.md",
+      "skillFolderHash": "91a0c90882608841eaf46dff9a9ddc7eae33c081",
+      "installedAt": "2026-07-07T13:51:06.193Z",
+      "updatedAt": "2026-07-07T13:51:06.193Z"
+    },
+    "argent-create-flow": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-create-flow/SKILL.md",
+      "skillFolderHash": "6defb0020f3f76527ff70fc80fb65ad4addd2b2c",
+      "installedAt": "2026-07-07T13:51:06.195Z",
+      "updatedAt": "2026-07-07T13:51:06.195Z"
+    },
+    "argent-device-interact": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-device-interact/SKILL.md",
+      "skillFolderHash": "68a9ad27ca231ff0d63ebbbec621a5d9ce48e02b",
+      "installedAt": "2026-07-07T13:51:06.195Z",
+      "updatedAt": "2026-07-07T13:51:06.195Z"
+    },
+    "argent-ios-simulator-setup": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-ios-simulator-setup/SKILL.md",
+      "skillFolderHash": "a20f523fb61968b8aca2a97954437131b776067d",
+      "installedAt": "2026-07-07T13:51:06.196Z",
+      "updatedAt": "2026-07-07T13:51:06.196Z"
+    },
+    "argent-lens": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-lens/SKILL.md",
+      "skillFolderHash": "ab0b19f82006cbaa5b68b859c93e35ae53b0f401",
+      "installedAt": "2026-07-07T13:51:06.197Z",
+      "updatedAt": "2026-07-07T13:51:06.197Z"
+    },
+    "argent-metro-debugger": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-metro-debugger/SKILL.md",
+      "skillFolderHash": "9a2c228cc543eff8c6df44c67aad2a7bf9d1ddb1",
+      "installedAt": "2026-07-07T13:51:06.197Z",
+      "updatedAt": "2026-07-07T13:51:06.197Z"
+    },
+    "argent-native-profiler": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-native-profiler/SKILL.md",
+      "skillFolderHash": "63192fc84cd48afa87a19a19ac810ea96323251e",
+      "installedAt": "2026-07-07T13:51:06.198Z",
+      "updatedAt": "2026-07-07T13:51:06.198Z"
+    },
+    "argent-react-native-app-workflow": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-react-native-app-workflow/SKILL.md",
+      "skillFolderHash": "3863f3cda18378cd94ed504d724480d7d5744273",
+      "installedAt": "2026-07-07T13:51:06.198Z",
+      "updatedAt": "2026-07-07T13:51:06.198Z"
+    },
+    "argent-react-native-optimization": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-react-native-optimization/SKILL.md",
+      "skillFolderHash": "7553f554bd82f067f1bfdd7684ed5741d1d051ce",
+      "installedAt": "2026-07-07T13:51:06.198Z",
+      "updatedAt": "2026-07-07T13:51:06.198Z"
+    },
+    "argent-react-native-profiler": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-react-native-profiler/SKILL.md",
+      "skillFolderHash": "8ffb0e0d3361d8d3071041eeba42fc4fdf5a4919",
+      "installedAt": "2026-07-07T13:51:06.199Z",
+      "updatedAt": "2026-07-07T13:51:06.199Z"
+    },
+    "argent-screenshot-diff": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-screenshot-diff/SKILL.md",
+      "skillFolderHash": "065108e0c3dda1b7b48f697304430759d10c7e6c",
+      "installedAt": "2026-07-07T13:51:06.199Z",
+      "updatedAt": "2026-07-07T13:51:06.199Z"
+    },
+    "argent-test-ui-flow": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-test-ui-flow/SKILL.md",
+      "skillFolderHash": "e4d665c230555fc4636b9757b98723217b67cd2a",
+      "installedAt": "2026-07-07T13:51:06.200Z",
+      "updatedAt": "2026-07-07T13:51:06.200Z"
+    },
+    "argent-tv-interact": {
+      "source": "software-mansion/argent",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/software-mansion/argent.git",
+      "ref": "v0.14.0",
+      "skillPath": "packages/skills/skills/argent-tv-interact/SKILL.md",
+      "skillFolderHash": "5f980d3d0475489bbf8be848a67f7b2a0632c6db",
+      "installedAt": "2026-07-07T13:51:06.200Z",
+      "updatedAt": "2026-07-07T13:51:06.200Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "antigravity-cli",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-code-cli",
+    "opencode",
+    "warp",
+    "zed"
+  ]
+}
