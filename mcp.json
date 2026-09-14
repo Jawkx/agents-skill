@@ -1,8 +1,16 @@
 {
-    "mcpServers": {
-        "argent": {
-            "command": "argent",
-            "args": ["mcp"]
-        },
+  "mcpServers": {
+    "argent": {
+      "transport": "stdio",
+      "command": "argent",
+      "args": ["mcp"],
+      "lifecycle": "eager"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     }
+  },
 }
