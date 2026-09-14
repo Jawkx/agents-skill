@@ -32,6 +32,21 @@ Read multiple references when the task crosses workflows. For example, React Nat
 9. Measure performance before optimizing and re-measure the identical scenario after every fix. Record repeatable interaction paths as flows.
 10. For visible changes, collect the evidence appropriate to the assertion: visual (`screenshot-diff`), structural (`describe`/component tree), and runtime (`logs`/network/evaluation/tests`).
 
+## Protected Argent updates
+
+The skill directory may contain local changes. Never let an Argent update overwrite it without recovery.
+
+Only update Argent after the user explicitly asks. Before updating:
+
+1. Copy the entire `~/.agents/skills/argent/` directory to a timestamped directory outside `~/.agents/skills/`.
+2. Record a recursive diff or checksums for the backup and current directory.
+3. Run the requested Argent update.
+4. Diff `~/.agents/skills/argent/` against the backup.
+5. If the updater changed or removed local skill files, restore the backup exactly.
+6. Review new upstream skill instructions separately. Do not merge them into the custom skill unless the user asks.
+
+Keep the backup until the update and a subsequent Argent tool call both succeed. Report whether the updater touched the custom skill directory.
+
 ## Supporting references
 
 Open these only when directed by a workflow:
