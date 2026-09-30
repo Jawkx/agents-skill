@@ -11,6 +11,13 @@
       "args": [
         "@playwright/mcp@latest"
       ]
+    },
+    "todoist": {
+      "url": "https://ai.todoist.net/mcp"
+    },
+    "doop": {
+      "type": "http",
+      "url": "https://doop.design/mcp"
     }
   },
 }
