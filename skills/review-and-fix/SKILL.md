@@ -1,7 +1,6 @@
 ---
 name: review-and-fix
 description: Loop a separate reviewer agent over your change and fix what it finds until you both agree. Use when the user says "review and fix" or asks for a review loop on a change.
-license: MIT (see LICENSE)
 metadata:
   source: https://github.com/t3dotgg/tstack
   adapted-from: sol-loop
